@@ -92,12 +92,15 @@ class INET_API MmlrpIpv4Route : public Ipv4Route
     simtime_t expiryTime;        // time the routing entry is valid until
 
   public:
+    // This function will check if the route is valid only if expiryTime is set to zero or the expiryTime is more than current simulation time
     virtual bool isValid() const override { return expiryTime == 0 || expiryTime > simTime(); }
 
     simtime_t getExpiryTime() const { return expiryTime; }
     void setExpiryTime(simtime_t time) { expiryTime = time; }
-    void setSequencenumber(int i) { sequencenumber = i; }
+
     unsigned int getSequencenumber() const { return sequencenumber; }
+    void setSequencenumber(int i) { sequencenumber = i; }
+
 };
 
 }
