@@ -37,6 +37,18 @@ void MmlrpNeighborTable::updateNeighbor(const L3Address& address, int networkInt
     addressToNeighborMap[address] = Neighbor(networkInterfaceId, position, simTime());
 }
 
+// to get the time of the oldest neighbor in the table (the less time the oldest)
+simtime_t MmlrpNeighborTable::getOldestNeighbor() const
+{
+    simtime_t oldestNeighborTime = SimTime::getMaxTime();
+    for (const auto& elem : addressToNeighborMap) {
+        const simtime_t& time = elem.second.lastUpdate;
+        if (time < oldestNeighborTime)
+            oldestNeighborTime = time;
+    }
+    return oldestNeighborTime;
+}
+
 void MmlrpNeighborTable::removeNeighbor(const L3Address& address)
 {
     auto it = addressToNeighborMap.find(address);
@@ -56,17 +68,6 @@ void MmlrpNeighborTable::removeOldNeighbors(simtime_t timestamp)
 void MmlrpNeighborTable::clear()
 {
     addressToNeighborMap.clear();
-}
-
-simtime_t MmlrpNeighborTable::getOldestNeighbor() const
-{
-    simtime_t oldestPosition = SimTime::getMaxTime();
-    for (const auto& elem : addressToNeighborMap) {
-        const simtime_t& time = elem.second.lastUpdate;
-        if (time < oldestPosition)
-            oldestPosition = time;
-    }
-    return oldestPosition;
 }
 
 std::ostream& operator<<(std::ostream& o, const MmlrpNeighborTable& t)

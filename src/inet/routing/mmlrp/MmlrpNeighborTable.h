@@ -21,15 +21,13 @@ private:
         int networkInterfaceId = -1;
         simtime_t lastUpdate = -1;
 
-        //TODO: add more metrics to the neighbor table
+        // TODO: add more metrics to the neighbor table
         Coord position = Coord::NIL;
 
         // constructor and parameterized constructor for the struct
         Neighbor() {}
-        Neighbor(int networkInterfaceId, const Coord &position,
-                simtime_t lastUpdate) :
-                networkInterfaceId(networkInterfaceId), position(position), lastUpdate(
-                        lastUpdate) {}
+        Neighbor(int networkInterfaceId, const Coord &position, simtime_t lastUpdate) :
+                networkInterfaceId(networkInterfaceId), position(position), lastUpdate(lastUpdate) {}
     };
 
     // a container that stores key-value pairs, key is address and value is the neighbor struct
@@ -45,12 +43,12 @@ public:
     Coord getPosition(const L3Address &address) const;
     void updateNeighbor(const L3Address &address, int networkInterfaceId, const Coord &position);
 
+    simtime_t getOldestNeighbor() const;
     void removeNeighbor(const L3Address &address);
     void removeOldNeighbors(simtime_t timestamp);
 
-    void clear();
 
-    simtime_t getOldestNeighbor() const;
+    void clear();
 
     friend std::ostream& operator<<(std::ostream &o, const MmlrpNeighborTable &t);
 };
