@@ -52,6 +52,7 @@ void Mmlrp::initialize(int stage)
         registerProtocol(Protocol::manet, gate("ipOut"), gate("ipIn"));
         networkProtocol->registerHook(0, this);
         host->subscribe(packetReceivedFromLowerSignal, this);
+        WATCH(neighborTable);
     }
 }
 

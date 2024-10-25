@@ -19,7 +19,9 @@
 #include "inet/networklayer/ipv4/Ipv4InterfaceData.h"
 #include "inet/networklayer/ipv4/Ipv4RoutingTable.h"
 #include "inet/routing/base/RoutingProtocolBase.h"
+
 #include "inet/routing/mmlrp/Mmlrp_m.h"
+#include "inet/routing/mmlrp/MmlrpNeighborTable.h"
 
 #include "inet/networklayer/contract/INetfilter.h"
 #include "inet/physicallayer/wireless/common/contract/packetlevel/SignalTag_m.h"
@@ -44,6 +46,9 @@ private:
     NetworkInterface *interface80211ptr = nullptr;
     int interfaceId = -1;
     opp_component_ptr<power::IEpEnergyStorage> energyStorage;
+
+    // Internal
+    MmlrpNeighborTable neighborTable;
 
   protected:
     simtime_t beaconInterval;
