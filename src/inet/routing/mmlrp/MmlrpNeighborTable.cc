@@ -6,6 +6,7 @@
 
 namespace inet {
 
+// return a vector containing all the neighbor addresses
 std::vector<L3Address> MmlrpNeighborTable::getAddresses() const
 {
     std::vector<L3Address> addresses;
@@ -14,11 +15,13 @@ std::vector<L3Address> MmlrpNeighborTable::getAddresses() const
     return addresses;
 }
 
+// check if the node is a neighbor with specified address
 bool MmlrpNeighborTable::hasNeighbor(const L3Address& address) const
 {
     return containsKey(addressToNeighborMap, address);
 }
 
+// return the network interface ID of a specified neighbor
 int MmlrpNeighborTable::getNetworkInterfaceId(const L3Address& address) const
 {
     auto it = addressToNeighborMap.find(address);
@@ -31,6 +34,7 @@ Coord MmlrpNeighborTable::getPosition(const L3Address& address) const
     return (it == addressToNeighborMap.end()) ? Coord::NIL : it->second.position;
 }
 
+// used to add or update new neighbor to the table
 void MmlrpNeighborTable::updateNeighbor(const L3Address& address, int networkInterfaceId, const Coord& position)
 {
     ASSERT(!address.isUnspecified());
@@ -49,12 +53,14 @@ simtime_t MmlrpNeighborTable::getOldestNeighbor() const
     return oldestNeighborTime;
 }
 
+// remove the neighbor with a specified address
 void MmlrpNeighborTable::removeNeighbor(const L3Address& address)
 {
     auto it = addressToNeighborMap.find(address);
     addressToNeighborMap.erase(it);
 }
 
+// purge the neighbor table based on the provided time
 void MmlrpNeighborTable::removeOldNeighbors(simtime_t timestamp)
 {
     for (auto it = addressToNeighborMap.begin(); it != addressToNeighborMap.end();)
@@ -65,6 +71,7 @@ void MmlrpNeighborTable::removeOldNeighbors(simtime_t timestamp)
 
 }
 
+// remove all the neighbor in the neighbor table
 void MmlrpNeighborTable::clear()
 {
     addressToNeighborMap.clear();
