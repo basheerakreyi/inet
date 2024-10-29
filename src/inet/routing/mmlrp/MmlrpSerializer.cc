@@ -12,8 +12,8 @@ void MmlrpBeaconSerializer::serialize(MemoryOutputStream& stream, const Ptr<cons
 {
     const auto& mmlrpBeacon = staticPtrCast<const MmlrpBeacon>(chunk);
     stream.writeIpv4Address(mmlrpBeacon->getSrcAddress());
-    stream.writeUint32Be(mmlrpBeacon->getSequencenumber());
     stream.writeIpv4Address(mmlrpBeacon->getNextAddress());
+    stream.writeUint32Be(mmlrpBeacon->getSequencenumber());
     stream.writeUint32Be(mmlrpBeacon->getDistanceCost());
 }
 
@@ -21,8 +21,8 @@ const Ptr<Chunk> MmlrpBeaconSerializer::deserialize(MemoryInputStream& stream) c
 {
     auto mmlrpBeacon = makeShared<MmlrpBeacon>();
     mmlrpBeacon->setSrcAddress(stream.readIpv4Address());
-    mmlrpBeacon->setSequencenumber(stream.readUint32Be());
     mmlrpBeacon->setNextAddress(stream.readIpv4Address());
+    mmlrpBeacon->setSequencenumber(stream.readUint32Be());
     mmlrpBeacon->setDistanceCost(stream.readUint32Be());
     mmlrpBeacon->setChunkLength(B(16));
     return mmlrpBeacon;
