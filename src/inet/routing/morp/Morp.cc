@@ -73,9 +73,10 @@ void Morp::start()
         interface80211ptr = i_face;
     else
         throw cRuntimeError("MORP has found %i 80211 interfaces", num_80211);
+
+    // Purge the routes related to wireless interface
     if (par("manetPurgeRoutingTables").boolValue()) {
         Ipv4Route *entry;
-        // clean the route entries in routing table related to wLan interface
         for (int i = rt->getNumRoutes() - 1; i >= 0; i--) {
             entry = rt->getRoute(i);
             if (entry->getInterface()->isWireless())
@@ -83,7 +84,7 @@ void Morp::start()
         }
     }
 
-    // schedules a random periodic event: the beacon message broadcast from MORP module
+    // Schedules the first event with a random time delay between zero and max variance
     scheduleAfter(uniform(0.0, par("maxVariance").doubleValue()), event);
 }
 
@@ -123,9 +124,10 @@ void Morp::handleMessageWhenUp(cMessage *msg)
 
             // reads MORP beacon message fields
             Ipv4Address src;
+            Ipv4Address next;
             unsigned int msgSequenceNumber;
             float numHops;
-            Ipv4Address next;
+
 
             src = recBeacon->getSrcAddress();
             msgSequenceNumber = recBeacon->getSequenceNumber();

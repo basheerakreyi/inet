@@ -13,7 +13,7 @@ class INET_API MorpRouteData : public Ipv4Route
   protected:
     unsigned int sequenceNumber; // Originated from destination to ensure loop freeness.
     simtime_t expirTime;         // Time the routing entry is valid until
-    float routeCost;             // Cost of the route
+    float routeCost;             // Cost of the route (The cost of the route can be based on multi-metrics)
 
   public:
     // This function will check if the route is valid only if expirTime is set to zero or the expirTime is more than current simulation time
