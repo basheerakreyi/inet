@@ -100,13 +100,8 @@ void Morp::handleMessageWhenUp(cMessage *msg)
     }
     else if (check_and_cast<Packet*>(msg)->getTag<PacketProtocolTag>()->getProtocol() == &Protocol::manet) {
 
-        Packet *pkt = check_and_cast<Packet*>(msg);
-
+        // Create new packet that will be used later to carry new information.
         auto packet = new Packet("Beacon");
-
-        // When MORP module receives MorpBeacon from other host
-        // it adds/replaces the information in routing table for the one contained in the message
-        // but only if it's useful/up-to-date. If not the MORP module ignores the message.
         auto addressReq = packet->addTag<L3AddressReq>();
         addressReq->setDestAddress(Ipv4Address(255, 255, 255, 255)); // let's try the limited broadcast 255.255.255.255
         addressReq->setSrcAddress(interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress());
@@ -114,13 +109,13 @@ void Morp::handleMessageWhenUp(cMessage *msg)
         packet->addTag<PacketProtocolTag>()->setProtocol(&Protocol::manet);
         packet->addTag<DispatchProtocolReq>()->setProtocol(&Protocol::ipv4);
 
+        // When MORP module receives MorpBeacon from other host
+        // it adds/replaces the information in routing table for the one contained in the message
+        // but only if it's useful/up-to-date. If not the MORP module ignores the message.
         auto recBeacon = staticPtrCast<MorpBeacon>(check_and_cast<Packet*>(msg)->peekData<MorpBeacon>()->dupShared());
-
-
         if (msg->arrivedOn("ipIn")) {
-            ASSERT(recBeacon);
 
-            Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
+            ASSERT(recBeacon);
 
             // reads MORP beacon message fields
             Ipv4Address src;
@@ -128,14 +123,15 @@ void Morp::handleMessageWhenUp(cMessage *msg)
             unsigned int msgSequenceNumber;
             float numHops;
 
-
             src = recBeacon->getSrcAddress();
-            msgSequenceNumber = recBeacon->getSequenceNumber();
             next = recBeacon->getNextAddress();
+            msgSequenceNumber = recBeacon->getSequenceNumber();
             numHops = recBeacon->getCost();
 
+            Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
+
             if (src == source) {
-                EV_INFO << "Beacon message dropped. The message returned to the original creator.\n";
+                EV_INFO << "Beacon message is dropped because the message is returned to the original node.\n";
                 delete packet;
                 delete msg;
                 return;
