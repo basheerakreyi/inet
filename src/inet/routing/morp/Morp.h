@@ -15,6 +15,7 @@
 
 #include "inet/routing/morp/Morp_m.h"
 #include "inet/routing/morp/MorpRouteData.h"
+#include "inet/routing/morp/MorpNeighborTable.h"
 
 namespace inet {
 
@@ -37,6 +38,7 @@ private:
     int interfaceId = -1;
 
     // Internal
+    MorpNeighborTable neighborTable;
 
 protected:
     simtime_t beaconInterval;

@@ -49,6 +49,7 @@ void Morp::initialize(int stage)
 
     else if (stage == INITSTAGE_ROUTING_PROTOCOLS) {
         registerProtocol(Protocol::manet, gate("ipOut"), gate("ipIn"));
+        WATCH(neighborTable);
     }
 }
 
