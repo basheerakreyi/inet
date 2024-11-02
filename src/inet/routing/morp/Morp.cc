@@ -115,7 +115,6 @@ void Morp::handleMessageWhenUp(cMessage *msg)
         // but only if it's useful/up-to-date. If not the MORP module ignores the message.
         auto recBeacon = staticPtrCast<MorpBeacon>(check_and_cast<Packet*>(msg)->peekData<MorpBeacon>()->dupShared());
         if (msg->arrivedOn("ipIn")) {
-
             ASSERT(recBeacon);
 
             // reads MORP beacon message fields
@@ -130,6 +129,12 @@ void Morp::handleMessageWhenUp(cMessage *msg)
             numHops = recBeacon->getCost();
 
             Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
+
+            // add the directly connected neighbor to the neighbor table
+            if (numHops == 1) {
+                int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
+                neighborTable.updateNeighbor(src, interfaceID, Coord::ZERO);
+            }
 
             if (src == source) {
                 EV_INFO << "Beacon message is dropped because the message is returned to the original node.\n";

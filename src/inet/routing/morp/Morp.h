@@ -12,6 +12,7 @@
 #include "inet/networklayer/ipv4/Ipv4InterfaceData.h"
 #include "inet/networklayer/ipv4/Ipv4RoutingTable.h"
 #include "inet/routing/base/RoutingProtocolBase.h"
+#include "inet/common/geometry/common/Coord.h"
 
 #include "inet/routing/morp/Morp_m.h"
 #include "inet/routing/morp/MorpRouteData.h"

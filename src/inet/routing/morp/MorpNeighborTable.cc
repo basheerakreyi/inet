@@ -77,11 +77,12 @@ void MorpNeighborTable::clear()
     addressToNeighborMap.clear();
 }
 
+// This function is used to show the neighbor table in info
 std::ostream& operator<<(std::ostream& o, const MorpNeighborTable& t)
 {
     o << "{ ";
     for (auto elem : t.addressToNeighborMap) {
-        o << elem.first << ":(" << elem.second.lastUpdate << ";" << elem.second.position << ") ";
+        o << elem.first << "@" << elem.second.lastUpdate << ":(" << elem.second.position << ") ";
     }
     o << "}";
     return o;
