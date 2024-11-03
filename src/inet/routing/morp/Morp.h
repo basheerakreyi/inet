@@ -4,6 +4,7 @@
 #ifndef __INET_MORP_H
 #define __INET_MORP_H
 
+// General INET includes
 #include "inet/common/packet/Packet.h"
 #include "inet/networklayer/contract/IInterfaceTable.h"
 #include "inet/networklayer/contract/ipv4/Ipv4Address.h"
@@ -12,8 +13,12 @@
 #include "inet/networklayer/ipv4/Ipv4InterfaceData.h"
 #include "inet/networklayer/ipv4/Ipv4RoutingTable.h"
 #include "inet/routing/base/RoutingProtocolBase.h"
-#include "inet/common/geometry/common/Coord.h"
 
+// Include for mobility
+#include "inet/common/geometry/common/Coord.h"
+#include "inet/mobility/contract/IMobility.h"
+
+// Internal includes
 #include "inet/routing/morp/Morp_m.h"
 #include "inet/routing/morp/MorpRouteData.h"
 #include "inet/routing/morp/MorpNeighborTable.h"
@@ -37,6 +42,7 @@ private:
     cModule *host = nullptr;
     NetworkInterface *interface80211ptr = nullptr;
     int interfaceId = -1;
+    opp_component_ptr<IMobility> mobility;
 
     // Internal
     MorpNeighborTable neighborTable;

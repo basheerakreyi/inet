@@ -40,11 +40,13 @@ class MorpBeacon;
 
 #include "inet/networklayer/contract/ipv4/Ipv4Address_m.h" // import inet.networklayer.contract.ipv4.Ipv4Address
 
+#include "inet/common/geometry/Geometry_m.h" // import inet.common.geometry.Geometry
+
 
 namespace inet {
 
 /**
- * Class generated from <tt>inet/routing/morp/Morp.msg:11</tt> by opp_msgtool.
+ * Class generated from <tt>inet/routing/morp/Morp.msg:12</tt> by opp_msgtool.
  * <pre>
  * class MorpBeacon extends FieldsChunk
  * {
@@ -52,6 +54,7 @@ namespace inet {
  *     Ipv4Address nextAddress;       // Node that transmits or re-transmits the packet    
  *     unsigned int sequenceNumber;   // Sequence number created by the source node of the beacon msg
  *     float cost;                    // Cost to reach the source node
+ *     Coord nextPosition;            // Position of the next node
  * }
  * </pre>
  */
@@ -62,6 +65,7 @@ class INET_API MorpBeacon : public ::inet::FieldsChunk
     Ipv4Address nextAddress;
     unsigned int sequenceNumber = 0;
     float cost = 0;
+    Coord nextPosition;
 
   private:
     void copy(const MorpBeacon& other);
@@ -91,6 +95,10 @@ class INET_API MorpBeacon : public ::inet::FieldsChunk
 
     virtual float getCost() const;
     virtual void setCost(float cost);
+
+    virtual const Coord& getNextPosition() const;
+    virtual Coord& getNextPositionForUpdate() { handleChange();return const_cast<Coord&>(const_cast<MorpBeacon*>(this)->getNextPosition());}
+    virtual void setNextPosition(const Coord& nextPosition);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const MorpBeacon& obj) {obj.parsimPack(b);}

@@ -45,6 +45,7 @@ void Morp::initialize(int stage)
         host = getContainingNode(this);
         ift.reference(this, "interfaceTableModule", true);
         rt.reference(this, "routingTableModule", true);
+        mobility = check_and_cast<IMobility *>(host->getSubmodule("mobility"));
     }
 
     else if (stage == INITSTAGE_ROUTING_PROTOCOLS) {
@@ -133,7 +134,7 @@ void Morp::handleMessageWhenUp(cMessage *msg)
             // add the directly connected neighbor to the neighbor table
             if (numHops == 1) {
                 int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
-                neighborTable.updateNeighbor(src, interfaceID, Coord::ZERO);
+                neighborTable.updateNeighbor(src, interfaceID, recBeacon->getNextPosition());
             }
 
             if (src == source) {
@@ -208,6 +209,7 @@ void Morp::handleSelfMessage(cMessage *msg)
         beacon->setSequenceNumber(sequenceNumber);
         beacon->setNextAddress(source);
         beacon->setCost(1);
+        beacon->setNextPosition(mobility->getCurrentPosition());
 
         // Created new packet for MorpBeacon
         auto packet = new Packet("Beacon", beacon);
