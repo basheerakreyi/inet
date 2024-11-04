@@ -16,5 +16,6 @@ class MorpBeacon extends FieldsChunk
     float cost;                    // Cost to reach the source node
     
     Coord nextPosition;            // Position of the next node
-    int nodeDegree;                // Number of neighbors  
+    int nodeDegree;                // Number of neighbors
+    double residualEnergy;         // The residual energy of the node
 }

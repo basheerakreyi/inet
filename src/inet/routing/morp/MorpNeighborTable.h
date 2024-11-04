@@ -24,11 +24,12 @@ private:
         // TODO: add more metrics to the neighbor table
         Coord position = Coord::NIL;
         int nodeDegree = -1;
+        double residualEnergy = -1;
 
         // constructor and parameterized constructor for the struct
         Neighbor() {}
-        Neighbor(int networkInterfaceId, const Coord &position, int nodeDegree, simtime_t lastUpdate) :
-                networkInterfaceId(networkInterfaceId), position(position), nodeDegree(nodeDegree), lastUpdate(lastUpdate) {}
+        Neighbor(int networkInterfaceId, const Coord &position, int nodeDegree, double residualEnergy, simtime_t lastUpdate) :
+                networkInterfaceId(networkInterfaceId), position(position), nodeDegree(nodeDegree), residualEnergy(residualEnergy), lastUpdate(lastUpdate) {}
     };
 
     // a container that stores key-value pairs, key is address and value is the neighbor struct
@@ -42,7 +43,7 @@ public:
     bool hasNeighbor(const L3Address &address) const;
     int getNetworkInterfaceId(const L3Address &address) const;
     Coord getPosition(const L3Address &address) const;
-    void updateNeighbor(const L3Address &address, int networkInterfaceId, const Coord &position, int nodeDegree);
+    void updateNeighbor(const L3Address &address, int networkInterfaceId, const Coord &position, int nodeDegree, double residualEnergy);
 
     simtime_t getOldestNeighbor() const;
     void removeNeighbor(const L3Address &address);
@@ -51,6 +52,7 @@ public:
     void clear();
 
     int getNodeDegree(const L3Address &address) const;
+    double getResidualEnergy(const L3Address &address) const;
 
     friend std::ostream& operator<<(std::ostream &o, const MorpNeighborTable &t);
 };

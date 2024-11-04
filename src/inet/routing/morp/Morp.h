@@ -18,6 +18,9 @@
 #include "inet/common/geometry/common/Coord.h"
 #include "inet/mobility/contract/IMobility.h"
 
+// Include for Energy
+#include "inet/power/contract/IEpEnergyStorage.h"
+
 // Internal includes
 #include "inet/routing/morp/Morp_m.h"
 #include "inet/routing/morp/MorpRouteData.h"
@@ -43,6 +46,7 @@ private:
     NetworkInterface *interface80211ptr = nullptr;
     int interfaceId = -1;
     opp_component_ptr<IMobility> mobility;
+    opp_component_ptr<power::IEpEnergyStorage> energyStorage;
 
     // Internal
     MorpNeighborTable neighborTable;

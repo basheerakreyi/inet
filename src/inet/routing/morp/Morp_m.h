@@ -56,7 +56,8 @@ namespace inet {
  *     float cost;                    // Cost to reach the source node
  * 
  *     Coord nextPosition;            // Position of the next node
- *     int nodeDegree;                // Number of neighbors  
+ *     int nodeDegree;                // Number of neighbors
+ *     double residualEnergy;         // The residual energy of the node
  * }
  * </pre>
  */
@@ -69,6 +70,7 @@ class INET_API MorpBeacon : public ::inet::FieldsChunk
     float cost = 0;
     Coord nextPosition;
     int nodeDegree = 0;
+    double residualEnergy = 0;
 
   private:
     void copy(const MorpBeacon& other);
@@ -105,6 +107,9 @@ class INET_API MorpBeacon : public ::inet::FieldsChunk
 
     virtual int getNodeDegree() const;
     virtual void setNodeDegree(int nodeDegree);
+
+    virtual double getResidualEnergy() const;
+    virtual void setResidualEnergy(double residualEnergy);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const MorpBeacon& obj) {obj.parsimPack(b);}

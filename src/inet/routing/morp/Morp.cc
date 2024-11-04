@@ -46,6 +46,7 @@ void Morp::initialize(int stage)
         ift.reference(this, "interfaceTableModule", true);
         rt.reference(this, "routingTableModule", true);
         mobility = check_and_cast<IMobility *>(host->getSubmodule("mobility"));
+        energyStorage = check_and_cast<power::IEpEnergyStorage *>(host->getSubmodule("energyStorage"));
     }
 
     else if (stage == INITSTAGE_ROUTING_PROTOCOLS) {
@@ -134,7 +135,7 @@ void Morp::handleMessageWhenUp(cMessage *msg)
             // add the directly connected neighbor to the neighbor table
             if (numHops == 1) {
                 int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
-                neighborTable.updateNeighbor(src, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree());
+                neighborTable.updateNeighbor(src, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree(), recBeacon->getResidualEnergy());
             }
 
             if (src == source) {
@@ -211,6 +212,7 @@ void Morp::handleSelfMessage(cMessage *msg)
         beacon->setCost(1);
         beacon->setNextPosition(mobility->getCurrentPosition());
         beacon->setNodeDegree(neighborTable.getAddresses().size());
+        beacon->setResidualEnergy(energyStorage->getResidualEnergyCapacity().get());
 
         // Created new packet for MorpBeacon
         auto packet = new Packet("Beacon", beacon);
