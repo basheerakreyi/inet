@@ -182,6 +182,7 @@ void MorpBeacon::copy(const MorpBeacon& other)
     this->sequenceNumber = other.sequenceNumber;
     this->cost = other.cost;
     this->nextPosition = other.nextPosition;
+    this->nodeDegree = other.nodeDegree;
 }
 
 void MorpBeacon::parsimPack(omnetpp::cCommBuffer *b) const
@@ -192,6 +193,7 @@ void MorpBeacon::parsimPack(omnetpp::cCommBuffer *b) const
     doParsimPacking(b,this->sequenceNumber);
     doParsimPacking(b,this->cost);
     doParsimPacking(b,this->nextPosition);
+    doParsimPacking(b,this->nodeDegree);
 }
 
 void MorpBeacon::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -202,6 +204,7 @@ void MorpBeacon::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimUnpacking(b,this->sequenceNumber);
     doParsimUnpacking(b,this->cost);
     doParsimUnpacking(b,this->nextPosition);
+    doParsimUnpacking(b,this->nodeDegree);
 }
 
 const Ipv4Address& MorpBeacon::getSrcAddress() const
@@ -259,6 +262,17 @@ void MorpBeacon::setNextPosition(const Coord& nextPosition)
     this->nextPosition = nextPosition;
 }
 
+int MorpBeacon::getNodeDegree() const
+{
+    return this->nodeDegree;
+}
+
+void MorpBeacon::setNodeDegree(int nodeDegree)
+{
+    handleChange();
+    this->nodeDegree = nodeDegree;
+}
+
 class MorpBeaconDescriptor : public omnetpp::cClassDescriptor
 {
   private:
@@ -269,6 +283,7 @@ class MorpBeaconDescriptor : public omnetpp::cClassDescriptor
         FIELD_sequenceNumber,
         FIELD_cost,
         FIELD_nextPosition,
+        FIELD_nodeDegree,
     };
   public:
     MorpBeaconDescriptor();
@@ -335,7 +350,7 @@ const char *MorpBeaconDescriptor::getProperty(const char *propertyName) const
 int MorpBeaconDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
-    return base ? 5+base->getFieldCount() : 5;
+    return base ? 6+base->getFieldCount() : 6;
 }
 
 unsigned int MorpBeaconDescriptor::getFieldTypeFlags(int field) const
@@ -352,8 +367,9 @@ unsigned int MorpBeaconDescriptor::getFieldTypeFlags(int field) const
         FD_ISEDITABLE,    // FIELD_sequenceNumber
         FD_ISEDITABLE,    // FIELD_cost
         FD_ISCOMPOUND,    // FIELD_nextPosition
+        FD_ISEDITABLE,    // FIELD_nodeDegree
     };
-    return (field >= 0 && field < 5) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 6) ? fieldTypeFlags[field] : 0;
 }
 
 const char *MorpBeaconDescriptor::getFieldName(int field) const
@@ -370,8 +386,9 @@ const char *MorpBeaconDescriptor::getFieldName(int field) const
         "sequenceNumber",
         "cost",
         "nextPosition",
+        "nodeDegree",
     };
-    return (field >= 0 && field < 5) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 6) ? fieldNames[field] : nullptr;
 }
 
 int MorpBeaconDescriptor::findField(const char *fieldName) const
@@ -383,6 +400,7 @@ int MorpBeaconDescriptor::findField(const char *fieldName) const
     if (strcmp(fieldName, "sequenceNumber") == 0) return baseIndex + 2;
     if (strcmp(fieldName, "cost") == 0) return baseIndex + 3;
     if (strcmp(fieldName, "nextPosition") == 0) return baseIndex + 4;
+    if (strcmp(fieldName, "nodeDegree") == 0) return baseIndex + 5;
     return base ? base->findField(fieldName) : -1;
 }
 
@@ -400,8 +418,9 @@ const char *MorpBeaconDescriptor::getFieldTypeString(int field) const
         "unsigned int",    // FIELD_sequenceNumber
         "float",    // FIELD_cost
         "inet::Coord",    // FIELD_nextPosition
+        "int",    // FIELD_nodeDegree
     };
-    return (field >= 0 && field < 5) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 6) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **MorpBeaconDescriptor::getFieldPropertyNames(int field) const
@@ -489,6 +508,7 @@ std::string MorpBeaconDescriptor::getFieldValueAsString(omnetpp::any_ptr object,
         case FIELD_sequenceNumber: return ulong2string(pp->getSequenceNumber());
         case FIELD_cost: return double2string(pp->getCost());
         case FIELD_nextPosition: return pp->getNextPosition().str();
+        case FIELD_nodeDegree: return long2string(pp->getNodeDegree());
         default: return "";
     }
 }
@@ -507,6 +527,7 @@ void MorpBeaconDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int fi
     switch (field) {
         case FIELD_sequenceNumber: pp->setSequenceNumber(string2ulong(value)); break;
         case FIELD_cost: pp->setCost(string2double(value)); break;
+        case FIELD_nodeDegree: pp->setNodeDegree(string2long(value)); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'MorpBeacon'", field);
     }
 }
@@ -526,6 +547,7 @@ omnetpp::cValue MorpBeaconDescriptor::getFieldValue(omnetpp::any_ptr object, int
         case FIELD_sequenceNumber: return (omnetpp::intval_t)(pp->getSequenceNumber());
         case FIELD_cost: return (double)(pp->getCost());
         case FIELD_nextPosition: return omnetpp::toAnyPtr(&pp->getNextPosition()); break;
+        case FIELD_nodeDegree: return pp->getNodeDegree();
         default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'MorpBeacon' as cValue -- field index out of range?", field);
     }
 }
@@ -544,6 +566,7 @@ void MorpBeaconDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int
     switch (field) {
         case FIELD_sequenceNumber: pp->setSequenceNumber(omnetpp::checked_int_cast<unsigned int>(value.intValue())); break;
         case FIELD_cost: pp->setCost(static_cast<float>(value.doubleValue())); break;
+        case FIELD_nodeDegree: pp->setNodeDegree(omnetpp::checked_int_cast<int>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'MorpBeacon'", field);
     }
 }

@@ -134,7 +134,7 @@ void Morp::handleMessageWhenUp(cMessage *msg)
             // add the directly connected neighbor to the neighbor table
             if (numHops == 1) {
                 int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
-                neighborTable.updateNeighbor(src, interfaceID, recBeacon->getNextPosition());
+                neighborTable.updateNeighbor(src, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree());
             }
 
             if (src == source) {
@@ -210,6 +210,7 @@ void Morp::handleSelfMessage(cMessage *msg)
         beacon->setNextAddress(source);
         beacon->setCost(1);
         beacon->setNextPosition(mobility->getCurrentPosition());
+        beacon->setNodeDegree(neighborTable.getAddresses().size());
 
         // Created new packet for MorpBeacon
         auto packet = new Packet("Beacon", beacon);

@@ -34,11 +34,17 @@ Coord MorpNeighborTable::getPosition(const L3Address& address) const
     return (it == addressToNeighborMap.end()) ? Coord::NIL : it->second.position;
 }
 
+int MorpNeighborTable::getNodeDegree(const L3Address& address) const
+{
+    auto it = addressToNeighborMap.find(address);
+    return (it == addressToNeighborMap.end()) ? -1 : it->second.nodeDegree;
+}
+
 // used to add or update new neighbor to the table
-void MorpNeighborTable::updateNeighbor(const L3Address& address, int networkInterfaceId, const Coord& position)
+void MorpNeighborTable::updateNeighbor(const L3Address& address, int networkInterfaceId, const Coord& position, int nodeDegree)
 {
     ASSERT(!address.isUnspecified());
-    addressToNeighborMap[address] = Neighbor(networkInterfaceId, position, simTime());
+    addressToNeighborMap[address] = Neighbor(networkInterfaceId, position, nodeDegree, simTime());
 }
 
 // to get the time of the oldest neighbor in the table (the less time the oldest)
@@ -82,7 +88,7 @@ std::ostream& operator<<(std::ostream& o, const MorpNeighborTable& t)
 {
     o << "{ ";
     for (auto elem : t.addressToNeighborMap) {
-        o << elem.first << "@" << elem.second.lastUpdate << ":(" << elem.second.position << ") ";
+        o << elem.first << "@" << elem.second.lastUpdate << ":" << elem.second.position << ", " << elem.second.nodeDegree << "; ";
     }
     o << "}";
     return o;

@@ -54,7 +54,9 @@ namespace inet {
  *     Ipv4Address nextAddress;       // Node that transmits or re-transmits the packet    
  *     unsigned int sequenceNumber;   // Sequence number created by the source node of the beacon msg
  *     float cost;                    // Cost to reach the source node
+ * 
  *     Coord nextPosition;            // Position of the next node
+ *     int nodeDegree;                // Number of neighbors  
  * }
  * </pre>
  */
@@ -66,6 +68,7 @@ class INET_API MorpBeacon : public ::inet::FieldsChunk
     unsigned int sequenceNumber = 0;
     float cost = 0;
     Coord nextPosition;
+    int nodeDegree = 0;
 
   private:
     void copy(const MorpBeacon& other);
@@ -99,6 +102,9 @@ class INET_API MorpBeacon : public ::inet::FieldsChunk
     virtual const Coord& getNextPosition() const;
     virtual Coord& getNextPositionForUpdate() { handleChange();return const_cast<Coord&>(const_cast<MorpBeacon*>(this)->getNextPosition());}
     virtual void setNextPosition(const Coord& nextPosition);
+
+    virtual int getNodeDegree() const;
+    virtual void setNodeDegree(int nodeDegree);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const MorpBeacon& obj) {obj.parsimPack(b);}
