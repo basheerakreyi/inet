@@ -176,10 +176,8 @@ void Morp::handleMessageWhenUp(cMessage *msg)
                 recBeacon->setNextAddress(source);
                 numHops++;
                 recBeacon->setCost(numHops);
-                double waitTime = intuniform(1, 50);
-                waitTime = waitTime / 100;
                 packet->insertAtBack(recBeacon);
-                sendDelayed(packet, waitTime, "ipOut");
+                send(packet, "ipOut");
                 packet = nullptr;
 
             }
