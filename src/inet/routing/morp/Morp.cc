@@ -47,10 +47,12 @@ void Morp::initialize(int stage)
         rt.reference(this, "routingTableModule", true);
         mobility = check_and_cast<IMobility *>(host->getSubmodule("mobility"));
         energyStorage = check_and_cast<power::IEpEnergyStorage *>(host->getSubmodule("energyStorage"));
+        nodeStatus = check_and_cast<NodeStatus *>(host->getSubmodule("status"));
     }
 
     else if (stage == INITSTAGE_ROUTING_PROTOCOLS) {
         registerProtocol(Protocol::manet, gate("ipOut"), gate("ipIn"));
+        host->subscribe(NodeStatus::nodeStatusChangedSignal, this);
         WATCH(neighborTable);
     }
 }
@@ -229,6 +231,18 @@ void Morp::handleSelfMessage(cMessage *msg)
 
         // schedule new broadcast beacon message event
         scheduleAfter(beaconInterval + broadcastDelay->doubleValue(), event);
+    }
+}
+
+//
+// notification
+//
+
+void Morp::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details) {
+    Enter_Method("%s", cComponent::getSignalName(signalID));
+
+    if (nodeStatus->getState() == NodeStatus::DOWN) {
+        std::cout << "The node is down at " << simTime() << endl;
     }
 }
 

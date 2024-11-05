@@ -21,6 +21,9 @@
 // Include for Energy
 #include "inet/power/contract/IEpEnergyStorage.h"
 
+// Include for NodeStaus
+#include "inet/common/lifecycle/NodeStatus.h"
+
 // Internal includes
 #include "inet/routing/morp/Morp_m.h"
 #include "inet/routing/morp/MorpRouteData.h"
@@ -31,7 +34,7 @@ namespace inet {
 /**
  * MORP protocol implementation.
  */
-class INET_API Morp : public RoutingProtocolBase
+class INET_API Morp : public RoutingProtocolBase, public cListener
 {
 
 private:
@@ -47,6 +50,7 @@ private:
     int interfaceId = -1;
     opp_component_ptr<IMobility> mobility;
     opp_component_ptr<power::IEpEnergyStorage> energyStorage;
+    opp_component_ptr<NodeStatus> nodeStatus;
 
     // Internal
     MorpNeighborTable neighborTable;
@@ -80,6 +84,9 @@ protected:
     }
     void start();
     void stop();
+
+    // Notification when receive a signal
+    virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details) override;
 
 };
 
