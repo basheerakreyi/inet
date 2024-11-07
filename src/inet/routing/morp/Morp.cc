@@ -153,7 +153,7 @@ void Morp::handleMessageWhenUp(cMessage *msg)
             // Tests if the MORP beacon message that arrived is useful
             if (_input_routing == nullptr
                             || (_input_routing != nullptr && _input_routing->getNetmask() != Ipv4Address::ALLONES_ADDRESS)
-                            || (input_routing != nullptr && (msgSequenceNumber > (input_routing->getSequenceNumber()) || (msgSequenceNumber == (input_routing->getSequenceNumber()) && numHops < (input_routing->getRouteCost())))))
+                            || (input_routing != nullptr && (msgSequenceNumber > input_routing->getSequenceNumber() || (msgSequenceNumber == input_routing->getSequenceNumber() && numHops < input_routing->getRouteCost()))))
             {
                 // remove old entry
                 if (input_routing != nullptr)
