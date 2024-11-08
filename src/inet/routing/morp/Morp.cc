@@ -26,6 +26,7 @@ Morp::~Morp()
 
     // Dispose of dynamically allocated the objects
     delete event;
+    delete purgeTimer;
 }
 
 void Morp::initialize(int stage)
@@ -35,6 +36,7 @@ void Morp::initialize(int stage)
     if (stage == INITSTAGE_LOCAL) {
         sequenceNumber = 0;
         event = new cMessage("event");
+        purgeTimer = new cMessage("purge");
 
         // Getting MORP parameters
         routeLifetime = par("routeLifetime").doubleValue();
@@ -96,6 +98,7 @@ void Morp::start()
 void Morp::stop()
 {
     cancelEvent(event);
+    cancelEvent(purgeTimer);
 }
 
 void Morp::handleMessageWhenUp(cMessage *msg)
@@ -173,6 +176,7 @@ void Morp::handleMessageWhenUp(cMessage *msg)
                     e->setSequenceNumber(msgSequenceNumber);
                     e->setExpirTime(simTime() + routeLifetime);
                     rt->addRoute(e);
+                    reschedulePurgeTimer();
                 }
 
                 recBeacon->setNextAddress(source);
@@ -198,7 +202,8 @@ void Morp::handleSelfMessage(cMessage *msg)
     if (msg == event) {
 
         // Purge the routing table (this to remove the expired routes)
-        rt->purge();
+        // rt->purge();
+        purge();
 
         auto beacon = makeShared<MorpBeacon>(); // Created new MORP beacon
 
@@ -231,6 +236,34 @@ void Morp::handleSelfMessage(cMessage *msg)
 
         // schedule new broadcast beacon message event
         scheduleAfter(beaconInterval + broadcastDelay->doubleValue(), event);
+    }
+    else if (msg == purgeTimer) {
+        purge();
+        reschedulePurgeTimer();
+    }
+}
+
+void Morp::reschedulePurgeTimer()
+{
+    simtime_t purgeTime = SimTime::getMaxTime();
+    for (int i = 0; i < rt->getNumRoutes(); i++) {
+        auto route = dynamic_cast<MorpRouteData *>(rt->getRoute(i));
+        if (route && !route->isExpired() && route->getExpirTime() < purgeTime)
+            purgeTime = route->getExpirTime();
+    }
+    cancelEvent(purgeTimer);
+    if (purgeTime != SimTime::getMaxTime())
+        scheduleAt(purgeTime, purgeTimer);
+}
+
+void Morp::purge()
+{
+    for (int i = 0; i < rt->getNumRoutes();) {
+        auto route = dynamic_cast<MorpRouteData *>(rt->getRoute(i));
+        if (route && route->isExpired())
+            rt->deleteRoute(route);
+        else
+            i++;
     }
 }
 

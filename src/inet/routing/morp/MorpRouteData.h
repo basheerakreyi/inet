@@ -18,6 +18,7 @@ class INET_API MorpRouteData : public Ipv4Route
   public:
     // This function will check if the route is valid only if expirTime is set to zero or the expirTime is more than current simulation time
     virtual bool isValid() const override { return expirTime == 0 || expirTime > simTime(); }
+    bool isExpired() const { return expirTime != 0 && expirTime <= simTime(); }
 
     simtime_t getExpirTime() const { return expirTime; }
     void setExpirTime(simtime_t time) { expirTime = time; }

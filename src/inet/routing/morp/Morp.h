@@ -39,6 +39,7 @@ class INET_API Morp : public RoutingProtocolBase, public cListener
 
 private:
     cMessage *event = nullptr;
+    cMessage *purgeTimer = nullptr;   // A self message to use for purge event
     cPar *broadcastDelay = nullptr;
 
     unsigned int sequenceNumber = 0;
@@ -71,6 +72,10 @@ protected:
     // Operation of the function. Handling Messages
     virtual void handleMessageWhenUp(cMessage *msg) override;
     void handleSelfMessage(cMessage *msg);
+
+    // Handling the purge event and performing the purge operation
+    void reschedulePurgeTimer();
+    void purge();
 
     // Life cycle of the protocol
     virtual void handleStartOperation(LifecycleOperation *operation) override {
