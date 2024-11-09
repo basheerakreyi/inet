@@ -29,6 +29,8 @@ class INET_API MorpRouteData : public Ipv4Route
     float getRouteCost() const { return routeCost; }
     void setRouteCost(float i) { routeCost = i; }
 
+    virtual std::string str() const override;
+
 };
 
 } /* namespace inet */
