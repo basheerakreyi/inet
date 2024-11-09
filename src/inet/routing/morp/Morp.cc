@@ -159,8 +159,11 @@ void Morp::handleMessageWhenUp(cMessage *msg)
                             || (input_routing != nullptr && (msgSequenceNumber > input_routing->getSequenceNumber() || (msgSequenceNumber == input_routing->getSequenceNumber() && numHops < input_routing->getRouteCost()))))
             {
                 // remove old entry
-                if (input_routing != nullptr)
+                if (input_routing != nullptr){
                     rt->deleteRoute(input_routing);
+                    std::cout << "host " << host->getFullName() << " deleted a route at " << simTime() << endl;
+                }
+
 
                 // adds new information to routing table according to information in beacon message
                 {
