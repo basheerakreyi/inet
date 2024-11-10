@@ -137,11 +137,9 @@ void Morp::handleMessageWhenUp(cMessage *msg)
 
             Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
 
-            // add the directly connected neighbor to the neighbor table
-            if (numHops == 1) {
-                int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
-                neighborTable.updateNeighbor(src, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree(), recBeacon->getResidualEnergy());
-            }
+            // add neighbor information into the neighbor table
+            int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
+            neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree(), recBeacon->getResidualEnergy());
 
             if (src == source) {
                 EV_INFO << "Beacon message is dropped because the message is returned to the original node.\n";
@@ -182,7 +180,12 @@ void Morp::handleMessageWhenUp(cMessage *msg)
                     reschedulePurgeTimer();
                 }
 
+                // Modify the content of the received beacon and send it to other neighbors
                 recBeacon->setNextAddress(source);
+                recBeacon->setNextPosition(mobility->getCurrentPosition());
+                recBeacon->setNodeDegree(neighborTable.getAddresses().size());
+                recBeacon->setResidualEnergy(energyStorage->getResidualEnergyCapacity().get());
+                // Calculate the cost of the route and set it in the received beacon
                 numHops++;
                 recBeacon->setCost(numHops);
                 packet->insertAtBack(recBeacon);
