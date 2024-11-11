@@ -128,12 +128,19 @@ void Morp::handleMessageWhenUp(cMessage *msg)
             Ipv4Address src;
             Ipv4Address next;
             unsigned int msgSequenceNumber;
-            float numHops;
+            float cost;
 
             src = recBeacon->getSrcAddress();
             next = recBeacon->getNextAddress();
             msgSequenceNumber = recBeacon->getSequenceNumber();
-            numHops = recBeacon->getCost();
+
+            // get the cost in beacon and calculate the new cost based on the information in received beacon
+//            if (recBeacon->getCost() == 0)
+//                cost = (1 / recBeacon->getResidualEnergy());
+//            else
+//                cost = 1 / ((1 / recBeacon->getCost()) + recBeacon->getResidualEnergy());
+            cost = recBeacon->getCost() + (1 / recBeacon->getResidualEnergy());   // Energy only cost
+            // cost = recBeacon->getCost() + 1;   // Hop only cost
 
             Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
 
@@ -154,7 +161,7 @@ void Morp::handleMessageWhenUp(cMessage *msg)
             // Tests if the MORP beacon message that arrived is useful
             if (_input_routing == nullptr
                             || (_input_routing != nullptr && _input_routing->getNetmask() != Ipv4Address::ALLONES_ADDRESS)
-                            || (input_routing != nullptr && (msgSequenceNumber > input_routing->getSequenceNumber() || (msgSequenceNumber == input_routing->getSequenceNumber() && numHops < input_routing->getRouteCost()))))
+                            || (input_routing != nullptr && (msgSequenceNumber > input_routing->getSequenceNumber() || (msgSequenceNumber == input_routing->getSequenceNumber() && cost < input_routing->getRouteCost()))))
             {
                 // remove old entry
                 if (input_routing != nullptr){
@@ -173,7 +180,7 @@ void Morp::handleMessageWhenUp(cMessage *msg)
                     e->setInterface(interface80211ptr);
                     e->setSourceType(IRoute::MANET);
                     //e->setMetric(numHops);
-                    e->setRouteCost(numHops);
+                    e->setRouteCost(cost);
                     e->setSequenceNumber(msgSequenceNumber);
                     e->setExpirTime(simTime() + routeLifetime);
                     rt->addRoute(e);
@@ -181,13 +188,11 @@ void Morp::handleMessageWhenUp(cMessage *msg)
                 }
 
                 // Modify the content of the received beacon and send it to other neighbors
+                recBeacon->setCost(cost);
                 recBeacon->setNextAddress(source);
                 recBeacon->setNextPosition(mobility->getCurrentPosition());
                 recBeacon->setNodeDegree(neighborTable.getAddresses().size());
                 recBeacon->setResidualEnergy(energyStorage->getResidualEnergyCapacity().get());
-                // Calculate the cost of the route and set it in the received beacon
-                numHops++;
-                recBeacon->setCost(numHops);
                 packet->insertAtBack(recBeacon);
                 send(packet, "ipOut");
                 packet = nullptr;
@@ -220,7 +225,7 @@ void Morp::handleSelfMessage(cMessage *msg)
         sequenceNumber += 2;
         beacon->setSequenceNumber(sequenceNumber);
         beacon->setNextAddress(source);
-        beacon->setCost(1);
+        beacon->setCost(0);
         beacon->setNextPosition(mobility->getCurrentPosition());
         beacon->setNodeDegree(neighborTable.getAddresses().size());
         beacon->setResidualEnergy(energyStorage->getResidualEnergyCapacity().get());
