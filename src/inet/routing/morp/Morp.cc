@@ -135,12 +135,12 @@ void Morp::handleMessageWhenUp(cMessage *msg)
             msgSequenceNumber = recBeacon->getSequenceNumber();
 
             // get the cost in beacon and calculate the new cost based on the information in received beacon
-//            if (recBeacon->getCost() == 0)
-//                cost = (1 / recBeacon->getResidualEnergy());
-//            else
-//                cost = 1 / ((1 / recBeacon->getCost()) + recBeacon->getResidualEnergy());
-            cost = recBeacon->getCost() + (1 / recBeacon->getResidualEnergy());   // Energy only cost
-            // cost = recBeacon->getCost() + 1;   // Hop only cost
+            // if (recBeacon->getCost() == 0)
+            //    cost = (1 / recBeacon->getResidualEnergy());
+            //else
+            //    cost = 1 / ((1 / recBeacon->getCost()) + recBeacon->getResidualEnergy());
+            // cost = recBeacon->getCost() + (1 / recBeacon->getResidualEnergy());   // Energy only cost
+            cost = recBeacon->getCost() + 1;   // Hop only cost
 
             Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
 
@@ -166,7 +166,7 @@ void Morp::handleMessageWhenUp(cMessage *msg)
                 // remove old entry
                 if (input_routing != nullptr){
                     rt->deleteRoute(input_routing);
-                    std::cout << "host " << host->getFullName() << " deleted a route at " << simTime() << endl;
+                //    std::cout << "host " << host->getFullName() << " deleted a route at " << simTime() << endl;
                 }
 
 
