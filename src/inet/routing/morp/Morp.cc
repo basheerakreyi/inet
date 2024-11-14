@@ -42,6 +42,7 @@ void Morp::initialize(int stage)
         routeLifetime = par("routeLifetime").doubleValue();
         beaconInterval = par("beaconInterval");
         broadcastDelay = &par("broadcastDelay");
+        hopWeight = par("hopWeight").doubleValue();
 
         // Context Setup
         host = getContainingNode(this);
@@ -139,8 +140,9 @@ void Morp::handleMessageWhenUp(cMessage *msg)
             //    cost = (1 / recBeacon->getResidualEnergy());
             //else
             //    cost = 1 / ((1 / recBeacon->getCost()) + recBeacon->getResidualEnergy());
-            // cost = recBeacon->getCost() + (1 / recBeacon->getResidualEnergy());   // Energy only cost
-            cost = recBeacon->getCost() + 1;   // Hop only cost
+            //cost = recBeacon->getCost() + (1 / recBeacon->getResidualEnergy());   // Energy only cost
+            //cost = recBeacon->getCost() + 1;   // Hop only cost
+            cost = recBeacon->getCost() + (hopWeight + (1-hopWeight)*(1 / recBeacon->getResidualEnergy()));
 
             Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
 
@@ -286,7 +288,7 @@ void Morp::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj,
     Enter_Method("%s", cComponent::getSignalName(signalID));
 
     if (nodeStatus->getState() == NodeStatus::DOWN) {
-        std::cout << "The node is down at " << simTime() << endl;
+        std::cout << simTime() << endl; // << "The node is down at "
     }
 }
 

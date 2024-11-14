@@ -54,6 +54,7 @@ private:
     opp_component_ptr<NodeStatus> nodeStatus;
 
     // Internal
+    double hopWeight;
     MorpNeighborTable neighborTable;
 
 protected:
