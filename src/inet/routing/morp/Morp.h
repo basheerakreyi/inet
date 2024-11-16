@@ -44,6 +44,7 @@ private:
 
     unsigned int sequenceNumber = 0;
     simtime_t routeLifetime;
+    simtime_t neighborLifetime;
 
     //Context
     cModule *host = nullptr;

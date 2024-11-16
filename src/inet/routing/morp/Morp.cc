@@ -40,6 +40,7 @@ void Morp::initialize(int stage)
 
         // Getting MORP parameters
         routeLifetime = par("routeLifetime").doubleValue();
+        neighborLifetime = par("neighborLifetime").doubleValue();
         beaconInterval = par("beaconInterval");
         broadcastDelay = &par("broadcastDelay");
         hopWeight = par("hopWeight").doubleValue();
@@ -149,6 +150,7 @@ void Morp::handleMessageWhenUp(cMessage *msg)
             // add neighbor information into the neighbor table
             int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
             neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree(), recBeacon->getResidualEnergy());
+            neighborTable.removeOldNeighbors(simTime() - neighborLifetime); // To remove the old neighbor that lost the connection
 
             if (src == source) {
                 EV_INFO << "Beacon message is dropped because the message is returned to the original node.\n";
