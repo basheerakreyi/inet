@@ -58,6 +58,7 @@ namespace inet {
  *     Coord nextPosition;            // Position of the next node
  *     int nodeDegree;                // Number of neighbors
  *     double residualEnergy;         // The residual energy of the node
+ *     double dataRate;               // The data rate of the node
  * }
  * </pre>
  */
@@ -71,6 +72,7 @@ class INET_API MorpBeacon : public ::inet::FieldsChunk
     Coord nextPosition;
     int nodeDegree = 0;
     double residualEnergy = 0;
+    double dataRate = 0;
 
   private:
     void copy(const MorpBeacon& other);
@@ -110,6 +112,9 @@ class INET_API MorpBeacon : public ::inet::FieldsChunk
 
     virtual double getResidualEnergy() const;
     virtual void setResidualEnergy(double residualEnergy);
+
+    virtual double getDataRate() const;
+    virtual void setDataRate(double dataRate);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const MorpBeacon& obj) {obj.parsimPack(b);}

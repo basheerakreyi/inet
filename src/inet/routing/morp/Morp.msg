@@ -18,4 +18,5 @@ class MorpBeacon extends FieldsChunk
     Coord nextPosition;            // Position of the next node
     int nodeDegree;                // Number of neighbors
     double residualEnergy;         // The residual energy of the node
+    double dataRate;               // The data rate of the node
 }

@@ -142,8 +142,9 @@ void Morp::handleMessageWhenUp(cMessage *msg)
             //else
             //    cost = 1 / ((1 / recBeacon->getCost()) + recBeacon->getResidualEnergy());
             //cost = recBeacon->getCost() + (1 / recBeacon->getResidualEnergy());   // Energy only cost
-            //cost = recBeacon->getCost() + 1;   // Hop only cost
-            cost = recBeacon->getCost() + (hopWeight + (1-hopWeight)*(1 / recBeacon->getResidualEnergy()));
+            cost = recBeacon->getCost() + 1;   // Hop only cost
+            //cost = recBeacon->getCost() + 56000000/recBeacon->getDataRate();   // Data rate only cost
+            //cost = recBeacon->getCost() + (hopWeight + (1-hopWeight)*(1 / recBeacon->getResidualEnergy()));
 
             Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
 
@@ -197,6 +198,7 @@ void Morp::handleMessageWhenUp(cMessage *msg)
                 recBeacon->setNextPosition(mobility->getCurrentPosition());
                 recBeacon->setNodeDegree(neighborTable.getAddresses().size());
                 recBeacon->setResidualEnergy(energyStorage->getResidualEnergyCapacity().get());
+                recBeacon->setDataRate(interface80211ptr->getDatarate());
                 packet->insertAtBack(recBeacon);
                 send(packet, "ipOut");
                 packet = nullptr;
@@ -233,6 +235,7 @@ void Morp::handleSelfMessage(cMessage *msg)
         beacon->setNextPosition(mobility->getCurrentPosition());
         beacon->setNodeDegree(neighborTable.getAddresses().size());
         beacon->setResidualEnergy(energyStorage->getResidualEnergyCapacity().get());
+        beacon->setDataRate(interface80211ptr->getDatarate());
 
         // Created new packet for MorpBeacon
         auto packet = new Packet("Beacon", beacon);
