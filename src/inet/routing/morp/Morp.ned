@@ -19,7 +19,9 @@ simple Morp like IManetRouting
         double neighborLifetime @unit(s) = default(5s);       // the expiry time of the neighbor
         bool manetPurgeRoutingTables = default(true);         // this parameter will be used if we want to purge the routing table
         volatile double broadcastDelay @unit(s) = default(uniform(0s,0.01s));  // 
-        double hopWeight = default(1);                        // Weight of hop metric
+        double alpha = default(1);                            // Weight for hop
+        double beta = default(0);                             // Weight for energy
+        double gamma = default(0);                            // Weight for bandwidth
     gates:
         input ipIn;
         output ipOut;

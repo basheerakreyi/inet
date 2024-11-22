@@ -43,7 +43,9 @@ void Morp::initialize(int stage)
         neighborLifetime = par("neighborLifetime").doubleValue();
         beaconInterval = par("beaconInterval");
         broadcastDelay = &par("broadcastDelay");
-        hopWeight = par("hopWeight").doubleValue();
+        alpha = par("alpha").doubleValue();
+        beta = par("beta").doubleValue();
+        gamma = par("gamma").doubleValue();
 
         // Context Setup
         host = getContainingNode(this);
@@ -131,6 +133,9 @@ void Morp::handleMessageWhenUp(cMessage *msg)
             Ipv4Address next;
             unsigned int msgSequenceNumber;
             float cost;
+            double hopCost;
+            double energyCost;
+            double bandwidthCost;
 
             src = recBeacon->getSrcAddress();
             next = recBeacon->getNextAddress();
@@ -142,9 +147,15 @@ void Morp::handleMessageWhenUp(cMessage *msg)
             //else
             //    cost = 1 / ((1 / recBeacon->getCost()) + recBeacon->getResidualEnergy());
             //cost = recBeacon->getCost() + (1 / recBeacon->getResidualEnergy());   // Energy only cost
-            cost = recBeacon->getCost() + 1;   // Hop only cost
+            //cost = recBeacon->getCost() + 1;   // Hop only cost
             //cost = recBeacon->getCost() + 56000000/recBeacon->getDataRate();   // Data rate only cost
-            //cost = recBeacon->getCost() + (hopWeight + (1-hopWeight)*(1 / recBeacon->getResidualEnergy()));
+            //cost = recBeacon->getCost() + (alpha + (1-alpha)*(1 / recBeacon->getResidualEnergy()));
+
+            hopCost = recBeacon->getCost() + 1;
+            energyCost = recBeacon->getCost() + 1/recBeacon->getResidualEnergy();
+            bandwidthCost = recBeacon->getCost() + 56000000/recBeacon->getDataRate();
+            cost = alpha*hopCost + beta*energyCost + gamma*bandwidthCost;
+
 
             Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
 
