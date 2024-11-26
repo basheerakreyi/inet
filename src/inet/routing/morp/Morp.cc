@@ -152,7 +152,11 @@ void Morp::handleMessageWhenUp(cMessage *msg)
             //cost = recBeacon->getCost() + (alpha + (1-alpha)*(1 / recBeacon->getResidualEnergy()));
 
             hopCost = recBeacon->getCost() + 1;
-            energyCost = recBeacon->getCost() + 1/recBeacon->getResidualEnergy();
+
+            //energyCost = recBeacon->getCost() + 1/recBeacon->getResidualEnergy();
+            //energyCost = recBeacon->getCost() + energyStorage->getNominalEnergyCapacity().get()/recBeacon->getResidualEnergy(); // Normalized
+            energyCost = recBeacon->getCost() + (1 - recBeacon->getResidualEnergy()/energyStorage->getNominalEnergyCapacity().get());
+
             bandwidthCost = recBeacon->getCost() + 56000000/recBeacon->getDataRate();
             cost = alpha*hopCost + beta*energyCost + gamma*bandwidthCost;
 
