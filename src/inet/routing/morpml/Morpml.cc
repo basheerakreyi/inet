@@ -342,10 +342,10 @@ INetfilter::IHook::Result Morpml::datagramPreRoutingHook(Packet *datagram)
                     << "," << energyStorage->getResidualEnergyCapacity().get()
                     << "," << interface80211ptr->getDatarate();
 
-//            if (datagram->findTag<SignalPowerInd>() != nullptr) {
-//                outFile << "," << datagram->getTag<SignalPowerInd>()->getPower()
-//                        << "," << datagram->getTag<SnirInd>()->getMinimumSnir();
-//            }
+            if (datagram->findTag<SignalPowerInd>() != nullptr) {
+                outFile << "," << datagram->getTag<SignalPowerInd>()->getPower()
+                        << "," << datagram->getTag<SnirInd>()->getMinimumSnir();
+            }
 
             outFile << endl;
             outFile.close();
