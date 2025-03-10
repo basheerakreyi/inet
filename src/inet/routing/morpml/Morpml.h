@@ -4,6 +4,11 @@
 #ifndef __INET_MORPML_H
 #define __INET_MORPML_H
 
+#include <stdio.h>
+#include <string.h>
+#include <iostream>
+#include <fstream>
+
 // General INET includes
 #include "inet/common/packet/Packet.h"
 #include "inet/networklayer/contract/IInterfaceTable.h"
@@ -13,6 +18,7 @@
 #include "inet/networklayer/ipv4/Ipv4InterfaceData.h"
 #include "inet/networklayer/ipv4/Ipv4RoutingTable.h"
 #include "inet/routing/base/RoutingProtocolBase.h"
+#include "inet/networklayer/contract/INetfilter.h"
 
 // Include for mobility
 #include "inet/common/geometry/common/Coord.h"
@@ -34,7 +40,7 @@ namespace inet {
 /**
  * MORPML protocol implementation.
  */
-class INET_API Morpml : public RoutingProtocolBase, public cListener
+class INET_API Morpml : public RoutingProtocolBase, public NetfilterBase::HookBase, public cListener
 {
 
 private:
@@ -64,6 +70,7 @@ protected:
     simtime_t beaconInterval;
     ModuleRefByPar<IInterfaceTable> ift;
     ModuleRefByPar<IIpv4RoutingTable> rt;
+    ModuleRefByPar<INetfilter> networkProtocol;
 
 public:
     Morpml();
@@ -93,6 +100,13 @@ protected:
     }
     void start();
     void stop();
+
+    // NetFilter
+    virtual Result datagramPreRoutingHook(Packet *datagram) override;
+    virtual Result datagramForwardHook(Packet *datagram) override { return ACCEPT; }
+    virtual Result datagramPostRoutingHook(Packet *datagram) override { return ACCEPT; }
+    virtual Result datagramLocalInHook(Packet *datagram) override { return ACCEPT; }
+    virtual Result datagramLocalOutHook(Packet *datagram) override{ return ACCEPT; }
 
     // Notification when receive a signal
     virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details) override;

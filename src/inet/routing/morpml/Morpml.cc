@@ -51,6 +51,7 @@ void Morpml::initialize(int stage)
         host = getContainingNode(this);
         ift.reference(this, "interfaceTableModule", true);
         rt.reference(this, "routingTableModule", true);
+        networkProtocol.reference(this, "networkProtocolModule", true); // added to make NetFilter work
         mobility = check_and_cast<IMobility *>(host->getSubmodule("mobility"));
         energyStorage = check_and_cast<power::IEpEnergyStorage *>(host->getSubmodule("energyStorage"));
         nodeStatus = check_and_cast<NodeStatus *>(host->getSubmodule("status"));
@@ -58,9 +59,15 @@ void Morpml::initialize(int stage)
 
     else if (stage == INITSTAGE_ROUTING_PROTOCOLS) {
         registerProtocol(Protocol::manet, gate("ipOut"), gate("ipIn"));
+        networkProtocol->registerHook(0, this); // added to make NetFilter work
         host->subscribe(NodeStatus::nodeStatusChangedSignal, this);
         WATCH(neighborTable);
     }
+
+    // Delete previously created output file if exist
+    std::string filename = "results/output.csv";
+    std::remove(filename.c_str());
+
 }
 
 void Morpml::start()
@@ -298,6 +305,57 @@ void Morpml::purge()
         else
             i++;
     }
+}
+
+//
+// NetFilter
+//
+
+INetfilter::IHook::Result Morpml::datagramPreRoutingHook(Packet *datagram)
+{
+    Enter_Method("datagramPreRoutingHook");
+
+    EV_INFO << "-------- Packet received with packet ID, TreeID --" << datagram->getId() << ", " << datagram->getTreeId() << endl;
+//    EV_INFO << "RX power= " << datagram->getTag<SignalPowerInd>()->getPower() << "W" << endl;
+//    EV_INFO << "Minimum SNIR Signal-to-Noise-and-Interference Ratio = " << datagram->getTag<SnirInd>()->getMinimumSnir() << endl;
+//    EV_INFO << (datagram->getTag<PacketProtocolTag>()->getProtocol() == &Protocol::ipv4) << endl;
+
+    const auto& networkHeader = getNetworkProtocolHeader(datagram);
+    if ((networkHeader->getProtocol() == &Protocol::udp)) {
+
+        // Output the information about the received packet
+        std::ofstream outFile("results/output.csv", std::ios::app);
+        if (outFile.is_open()) {
+            outFile << simTime()
+                    << "," << datagram->getTreeId()
+                    << "," << networkHeader->getSourceAddress()
+                    << "," << networkHeader->getDestinationAddress();
+//                    << "," << energyStorage->getResidualEnergyCapacity();
+
+            if (datagram->findTag<MacAddressInd>() != nullptr) {
+                outFile << "," << datagram->getTag<MacAddressInd>()->getSrcAddress()
+                        << "," << datagram->getTag<MacAddressInd>()->getDestAddress();
+
+            }
+
+            outFile << "," << neighborTable.getAddresses().size()
+                    << "," << energyStorage->getResidualEnergyCapacity().get()
+                    << "," << interface80211ptr->getDatarate();
+
+//            if (datagram->findTag<SignalPowerInd>() != nullptr) {
+//                outFile << "," << datagram->getTag<SignalPowerInd>()->getPower()
+//                        << "," << datagram->getTag<SnirInd>()->getMinimumSnir();
+//            }
+
+            outFile << endl;
+            outFile.close();
+        } else {
+            std::cout << "Error opening file!" << std::endl;
+        }
+        // ----------------------------------------------- //
+    }
+
+    return ACCEPT;
 }
 
 //
