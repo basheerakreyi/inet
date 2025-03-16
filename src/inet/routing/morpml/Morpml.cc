@@ -347,6 +347,16 @@ INetfilter::IHook::Result Morpml::datagramPreRoutingHook(Packet *datagram)
                         << "," << datagram->getTag<SnirInd>()->getMinimumSnir();
             }
 
+            // Adding the time delay of the packet to Data Collection
+            auto data = datagram->peekData(); // get all data from the packet
+            auto regions = data->getAllTags<CreationTimeTag>(); // get all tag regions
+            for (auto &region : regions) { // for each region do
+                auto creationTime = region.getTag()->getCreationTime().dbl(); // original time
+                auto delay = simTime() - creationTime; // compute delay
+                outFile << "," << delay;
+
+            }
+
             outFile << endl;
             outFile.close();
         } else {

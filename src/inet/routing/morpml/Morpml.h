@@ -20,6 +20,7 @@
 #include "inet/routing/base/RoutingProtocolBase.h"
 #include "inet/networklayer/contract/INetfilter.h"
 #include "inet/physicallayer/wireless/common/contract/packetlevel/SignalTag_m.h"
+#include "inet/common/TimeTag_m.h"
 
 // Include for mobility
 #include "inet/common/geometry/common/Coord.h"
