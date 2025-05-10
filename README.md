@@ -30,24 +30,6 @@ Data collection modules are implemented to log routing and node metrics into CSV
 - Sequence number support to ensure loop-freeness and up-to-date routing.
 - Modifiable through `.ini` configuration for easy experimentation.
 
-## Structure
-
-- `src/morp/` – Source files implementing MORP and MORPML.
-- `models/` – Trained ML models (if applicable).
-- `examples/` – Sample INET simulation setups demonstrating the protocol.
-- `scripts/` – Python scripts for training and evaluating ML models.
-- `docs/` – Documentation and technical details.
-
-## Installation
-
-1. Clone this repository inside your INET Framework directory:
-    ```bash
-    cd inet/src
-    git clone https://github.com/yourusername/MORP-Routing-Protocol.git morp
-    ```
-2. Register the MORP module in `Makefile` and `omnetpp.ini`.
-3. Rebuild INET using OMNeT++ IDE or via `make`.
-
 ## Usage
 
 You can run the simulation using standard `.ini` configuration files and extend the parameters to control:
