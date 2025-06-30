@@ -1,4 +1,3 @@
-
 // Author: Basheer Al-Qassab
 
 package inet.routing.mlmorp;
@@ -22,6 +21,13 @@ simple Mlmorp like IManetRouting
         double alpha = default(1);                            // Weight for hop
         double beta = default(0);                             // Weight for energy
         double gamma = default(0);                            // Weight for bandwidth
+        
+        // DNN Model Parameters
+        bool useDNNRouting = default(false);                  // Enable DNN-based routing
+        int dnnInputSize = default(6);                        // Number of input features
+        int dnnHiddenSize = default(12);                      // Number of neurons in hidden layer
+        bool dnnClassification = default(true);               // True for classification, false for regression
+        string dnnModelFile = default("");                    // Path to pre-trained model file (optional)
     gates:
         input ipIn;
         output ipOut;

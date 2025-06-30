@@ -1,4 +1,3 @@
-
 // Author: Basheer Al-Qassab
 
 #include "inet/routing/mlmorp/Mlmorp.h"
@@ -27,6 +26,7 @@ Mlmorp::~Mlmorp()
     // Dispose of dynamically allocated the objects
     delete event;
     delete purgeTimer;
+    delete dnnModel;
 }
 
 void Mlmorp::initialize(int stage)
@@ -46,6 +46,26 @@ void Mlmorp::initialize(int stage)
         alpha = par("alpha").doubleValue();
         beta = par("beta").doubleValue();
         gamma = par("gamma").doubleValue();
+
+        // Initialize DNN Model
+        int inputSize = par("dnnInputSize").intValue();
+        int hiddenSize = par("dnnHiddenSize").intValue();
+        bool isClassification = par("dnnClassification").boolValue();
+        dnnModel = new SimpleDNNModel(inputSize, hiddenSize, isClassification);
+        
+        // Load pre-trained model if specified
+        std::string modelFile = par("dnnModelFile").stringValue();
+        if (!modelFile.empty()) {
+            if (dnnModel->loadModel(modelFile)) {
+                EV_INFO << "DNN model loaded successfully from " << modelFile << endl;
+            } else {
+                EV_WARN << "Failed to load DNN model from " << modelFile << ", using random initialization" << endl;
+            }
+        } else {
+            EV_INFO << "DNN model initialized with random weights" << endl;
+        }
+        
+        EV_INFO << "DNN Model Info: " << dnnModel->getModelInfo() << endl;
 
         // Context Setup
         host = getContainingNode(this);
@@ -149,24 +169,33 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
             msgSequenceNumber = recBeacon->getSequenceNumber();
 
             // get the cost in beacon and calculate the new cost based on the information in received beacon
-            // if (recBeacon->getCost() == 0)
-            //    cost = (1 / recBeacon->getResidualEnergy());
-            //else
-            //    cost = 1 / ((1 / recBeacon->getCost()) + recBeacon->getResidualEnergy());
-            //cost = recBeacon->getCost() + (1 / recBeacon->getResidualEnergy());   // Energy only cost
-            //cost = recBeacon->getCost() + 1;   // Hop only cost
-            //cost = recBeacon->getCost() + 56000000/recBeacon->getDataRate();   // Data rate only cost
-            //cost = recBeacon->getCost() + (alpha + (1-alpha)*(1 / recBeacon->getResidualEnergy()));
-
-            hopCost = recBeacon->getCost() + 1;
-
-            //energyCost = recBeacon->getCost() + 1/recBeacon->getResidualEnergy();
-            //energyCost = recBeacon->getCost() + energyStorage->getNominalEnergyCapacity().get()/recBeacon->getResidualEnergy(); // Normalized
-            energyCost = recBeacon->getCost() + (1 - recBeacon->getResidualEnergy()/energyStorage->getNominalEnergyCapacity().get());
-
-            bandwidthCost = recBeacon->getCost() + 56000000/recBeacon->getDataRate();
-            cost = alpha*hopCost + beta*energyCost + gamma*bandwidthCost;
-
+            // Check if DNN-based routing is enabled
+            bool useDNN = par("useDNNRouting").boolValue();
+            
+            if (useDNN) {
+                // Use DNN model to calculate routing cost
+                double residualEnergy = recBeacon->getResidualEnergy();
+                double dataRate = recBeacon->getDataRate();
+                double signalPower = 1e-6;  // Default value - could be enhanced
+                int nodeDegree = recBeacon->getNodeDegree();
+                double snir = 10.0;         // Default value - could be enhanced
+                double packetDelay = 0.001; // Default value - could be enhanced
+                
+                // Get DNN prediction as routing score (higher is better)
+                double dnnScore = dnnModel->predict(residualEnergy, dataRate, signalPower, 
+                                                   nodeDegree, snir, packetDelay);
+                
+                // Convert DNN score to cost (lower is better for routing)
+                cost = recBeacon->getCost() + (1.0 - dnnScore);
+                
+                EV_INFO << "DNN-based routing: score=" << dnnScore << ", cost=" << cost << endl;
+            } else {
+                // Use traditional cost calculation
+                hopCost = recBeacon->getCost() + 1;
+                energyCost = recBeacon->getCost() + (1 - recBeacon->getResidualEnergy()/energyStorage->getNominalEnergyCapacity().get());
+                bandwidthCost = recBeacon->getCost() + 56000000/recBeacon->getDataRate();
+                cost = alpha*hopCost + beta*energyCost + gamma*bandwidthCost;
+            }
 
             Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
 
@@ -378,6 +407,55 @@ void Mlmorp::receiveSignal(cComponent *source, simsignal_t signalID, cObject *ob
     if (nodeStatus->getState() == NodeStatus::DOWN) {
         std::cout << simTime() << endl; // << "The node is down at "
     }
+}
+
+/**
+ * Select the best next-hop neighbor using DNN model predictions
+ * @param destination The destination address
+ * @return The best neighbor address for routing
+ */
+L3Address Mlmorp::selectBestNeighborDNN(const L3Address& destination) const
+{
+    // Get all available neighbors
+    std::vector<L3Address> neighbors = neighborTable.getAddresses();
+    
+    if (neighbors.empty()) {
+        return L3Address();
+    }
+    
+    // If only one neighbor, return it
+    if (neighbors.size() == 1) {
+        return neighbors[0];
+    }
+    
+    // Create feature map for each neighbor
+    std::map<L3Address, std::vector<double>> neighborFeatures;
+    
+    for (const auto& neighbor : neighbors) {
+        std::vector<double> features;
+        
+        // Get neighbor information
+        double residualEnergy = neighborTable.getResidualEnergy(neighbor);
+        int nodeDegree = neighborTable.getNodeDegree(neighbor);
+        
+        // Get interface information for data rate
+        double dataRate = interface80211ptr->getDatarate();
+        
+        // Default values for signal power and SNIR (these would need to be tracked)
+        double signalPower = 1e-6;  // Default signal power
+        double snir = 10.0;         // Default SNIR
+        
+        // Calculate packet delay (simplified - could be enhanced with actual delay tracking)
+        double packetDelay = 0.001; // Default delay
+        
+        // Create feature vector: [residualEnergy, dataRate, signalPower, nodeDegree, snir, packetDelay]
+        features = {residualEnergy, dataRate, signalPower, static_cast<double>(nodeDegree), snir, packetDelay};
+        
+        neighborFeatures[neighbor] = features;
+    }
+    
+    // Use DNN model to select best neighbor
+    return dnnModel->selectBestNeighbor(neighbors, neighborFeatures);
 }
 
 } /* namespace inet */

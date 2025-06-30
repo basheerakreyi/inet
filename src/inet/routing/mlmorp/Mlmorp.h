@@ -1,4 +1,3 @@
-
 // Author: Basheer Al-Qassab
 
 #ifndef __INET_MLMORP_H
@@ -10,9 +9,11 @@
 #include <fstream>
 
 // General INET includes
+#include "inet/common/INETDefs.h"
 #include "inet/common/packet/Packet.h"
 #include "inet/networklayer/contract/IInterfaceTable.h"
 #include "inet/networklayer/contract/ipv4/Ipv4Address.h"
+#include "inet/networklayer/common/L3Address.h"
 #include "inet/networklayer/ipv4/IIpv4RoutingTable.h"
 #include "inet/networklayer/ipv4/Ipv4Header_m.h"
 #include "inet/networklayer/ipv4/Ipv4InterfaceData.h"
@@ -36,6 +37,7 @@
 #include "inet/routing/mlmorp/Mlmorp_m.h"
 #include "inet/routing/mlmorp/MlmorpRouteData.h"
 #include "inet/routing/mlmorp/MlmorpNeighborTable.h"
+#include "inet/routing/mlmorp/SimpleDNNModel.h"
 
 namespace inet {
 
@@ -67,6 +69,17 @@ private:
     double beta;
     double gamma;
     MlmorpNeighborTable neighborTable;
+
+    
+    // DNN Model for routing decisions
+    SimpleDNNModel* dnnModel;
+    
+    /**
+     * Select the best next-hop neighbor using DNN model predictions
+     * @param destination The destination address
+     * @return The best neighbor address for routing
+     */
+    L3Address selectBestNeighborDNN(const L3Address& destination) const;
 
 protected:
     simtime_t beaconInterval;
