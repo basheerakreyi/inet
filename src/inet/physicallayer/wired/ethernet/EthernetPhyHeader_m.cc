@@ -963,7 +963,7 @@ unsigned int EthernetFragmentPhyHeaderDescriptor::getFieldTypeFlags(int field) c
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_preambleType
+        0,    // FIELD_preambleType
         FD_ISEDITABLE,    // FIELD_smdNumber
         FD_ISEDITABLE,    // FIELD_fragmentNumber
     };
@@ -1118,7 +1118,6 @@ void EthernetFragmentPhyHeaderDescriptor::setFieldValueAsString(omnetpp::any_ptr
     }
     EthernetFragmentPhyHeader *pp = omnetpp::fromAnyPtr<EthernetFragmentPhyHeader>(object); (void)pp;
     switch (field) {
-        case FIELD_preambleType: pp->setPreambleType((inet::physicallayer::EthernetPhyHeaderType)string2enum(value, "inet::physicallayer::EthernetPhyHeaderType")); break;
         case FIELD_smdNumber: pp->setSmdNumber(string2ulong(value)); break;
         case FIELD_fragmentNumber: pp->setFragmentNumber(string2ulong(value)); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'EthernetFragmentPhyHeader'", field);
@@ -1154,7 +1153,6 @@ void EthernetFragmentPhyHeaderDescriptor::setFieldValue(omnetpp::any_ptr object,
     }
     EthernetFragmentPhyHeader *pp = omnetpp::fromAnyPtr<EthernetFragmentPhyHeader>(object); (void)pp;
     switch (field) {
-        case FIELD_preambleType: pp->setPreambleType(static_cast<inet::physicallayer::EthernetPhyHeaderType>(value.intValue())); break;
         case FIELD_smdNumber: pp->setSmdNumber(omnetpp::checked_int_cast<uint8_t>(value.intValue())); break;
         case FIELD_fragmentNumber: pp->setFragmentNumber(omnetpp::checked_int_cast<uint8_t>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'EthernetFragmentPhyHeader'", field);

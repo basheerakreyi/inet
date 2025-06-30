@@ -359,7 +359,7 @@ unsigned int RtcpPacketDescriptor::getFieldTypeFlags(int field) const
         FD_ISEDITABLE,    // FIELD_version
         FD_ISEDITABLE,    // FIELD_padding
         FD_ISEDITABLE,    // FIELD_count
-        FD_ISEDITABLE,    // FIELD_packetType
+        0,    // FIELD_packetType
         FD_ISEDITABLE,    // FIELD_rtcpLength
     };
     return (field >= 0 && field < 5) ? fieldTypeFlags[field] : 0;
@@ -524,7 +524,6 @@ void RtcpPacketDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int fi
         case FIELD_version: pp->setVersion(string2long(value)); break;
         case FIELD_padding: pp->setPadding(string2bool(value)); break;
         case FIELD_count: pp->setCount(string2long(value)); break;
-        case FIELD_packetType: pp->setPacketType((inet::rtp::RtcpPacketType)string2enum(value, "inet::rtp::RtcpPacketType")); break;
         case FIELD_rtcpLength: pp->setRtcpLength(string2long(value)); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'RtcpPacket'", field);
     }
@@ -564,7 +563,6 @@ void RtcpPacketDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int
         case FIELD_version: pp->setVersion(omnetpp::checked_int_cast<int8_t>(value.intValue())); break;
         case FIELD_padding: pp->setPadding(value.boolValue()); break;
         case FIELD_count: pp->setCount(omnetpp::checked_int_cast<short>(value.intValue())); break;
-        case FIELD_packetType: pp->setPacketType(static_cast<inet::rtp::RtcpPacketType>(value.intValue())); break;
         case FIELD_rtcpLength: pp->setRtcpLength(omnetpp::checked_int_cast<int>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'RtcpPacket'", field);
     }

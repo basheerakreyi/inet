@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by opp_msgtool 6.0 from inet/physicallayer/wireless/apsk/packetlevel/ApskPhyHeader.msg.
+// Generated file, do not edit! Created by opp_msgtool 6.0 from inet/routing/mlmorp/Mlmorp.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -28,7 +28,7 @@
 #include <sstream>
 #include <memory>
 #include <type_traits>
-#include "ApskPhyHeader_m.h"
+#include "Mlmorp_m.h"
 
 namespace omnetpp {
 
@@ -152,24 +152,22 @@ void doParsimUnpacking(omnetpp::cCommBuffer *, T& t)
 
 namespace inet {
 
-Register_Class(ApskPhyHeader)
+Register_Class(MlmorpBeacon)
 
-ApskPhyHeader::ApskPhyHeader() : ::inet::FieldsChunk()
+MlmorpBeacon::MlmorpBeacon() : ::inet::FieldsChunk()
 {
-    this->setChunkLength(B(6));
-
 }
 
-ApskPhyHeader::ApskPhyHeader(const ApskPhyHeader& other) : ::inet::FieldsChunk(other)
+MlmorpBeacon::MlmorpBeacon(const MlmorpBeacon& other) : ::inet::FieldsChunk(other)
 {
     copy(other);
 }
 
-ApskPhyHeader::~ApskPhyHeader()
+MlmorpBeacon::~MlmorpBeacon()
 {
 }
 
-ApskPhyHeader& ApskPhyHeader::operator=(const ApskPhyHeader& other)
+MlmorpBeacon& MlmorpBeacon::operator=(const MlmorpBeacon& other)
 {
     if (this == &other) return *this;
     ::inet::FieldsChunk::operator=(other);
@@ -177,104 +175,149 @@ ApskPhyHeader& ApskPhyHeader::operator=(const ApskPhyHeader& other)
     return *this;
 }
 
-void ApskPhyHeader::copy(const ApskPhyHeader& other)
+void MlmorpBeacon::copy(const MlmorpBeacon& other)
 {
-    this->headerLengthField = other.headerLengthField;
-    this->payloadLengthField = other.payloadLengthField;
-    this->crc = other.crc;
-    this->crcMode = other.crcMode;
-    this->payloadProtocol = other.payloadProtocol;
+    this->srcAddress = other.srcAddress;
+    this->nextAddress = other.nextAddress;
+    this->sequenceNumber = other.sequenceNumber;
+    this->cost = other.cost;
+    this->nextPosition = other.nextPosition;
+    this->nodeDegree = other.nodeDegree;
+    this->residualEnergy = other.residualEnergy;
+    this->dataRate = other.dataRate;
 }
 
-void ApskPhyHeader::parsimPack(omnetpp::cCommBuffer *b) const
+void MlmorpBeacon::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::inet::FieldsChunk::parsimPack(b);
-    doParsimPacking(b,this->headerLengthField);
-    doParsimPacking(b,this->payloadLengthField);
-    doParsimPacking(b,this->crc);
-    doParsimPacking(b,this->crcMode);
-    doParsimPacking(b,this->payloadProtocol);
+    doParsimPacking(b,this->srcAddress);
+    doParsimPacking(b,this->nextAddress);
+    doParsimPacking(b,this->sequenceNumber);
+    doParsimPacking(b,this->cost);
+    doParsimPacking(b,this->nextPosition);
+    doParsimPacking(b,this->nodeDegree);
+    doParsimPacking(b,this->residualEnergy);
+    doParsimPacking(b,this->dataRate);
 }
 
-void ApskPhyHeader::parsimUnpack(omnetpp::cCommBuffer *b)
+void MlmorpBeacon::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::inet::FieldsChunk::parsimUnpack(b);
-    doParsimUnpacking(b,this->headerLengthField);
-    doParsimUnpacking(b,this->payloadLengthField);
-    doParsimUnpacking(b,this->crc);
-    doParsimUnpacking(b,this->crcMode);
-    doParsimUnpacking(b,this->payloadProtocol);
+    doParsimUnpacking(b,this->srcAddress);
+    doParsimUnpacking(b,this->nextAddress);
+    doParsimUnpacking(b,this->sequenceNumber);
+    doParsimUnpacking(b,this->cost);
+    doParsimUnpacking(b,this->nextPosition);
+    doParsimUnpacking(b,this->nodeDegree);
+    doParsimUnpacking(b,this->residualEnergy);
+    doParsimUnpacking(b,this->dataRate);
 }
 
-b ApskPhyHeader::getHeaderLengthField() const
+const Ipv4Address& MlmorpBeacon::getSrcAddress() const
 {
-    return this->headerLengthField;
+    return this->srcAddress;
 }
 
-void ApskPhyHeader::setHeaderLengthField(b headerLengthField)
-{
-    handleChange();
-    this->headerLengthField = headerLengthField;
-}
-
-b ApskPhyHeader::getPayloadLengthField() const
-{
-    return this->payloadLengthField;
-}
-
-void ApskPhyHeader::setPayloadLengthField(b payloadLengthField)
+void MlmorpBeacon::setSrcAddress(const Ipv4Address& srcAddress)
 {
     handleChange();
-    this->payloadLengthField = payloadLengthField;
+    this->srcAddress = srcAddress;
 }
 
-uint16_t ApskPhyHeader::getCrc() const
+const Ipv4Address& MlmorpBeacon::getNextAddress() const
 {
-    return this->crc;
+    return this->nextAddress;
 }
 
-void ApskPhyHeader::setCrc(uint16_t crc)
-{
-    handleChange();
-    this->crc = crc;
-}
-
-CrcMode ApskPhyHeader::getCrcMode() const
-{
-    return this->crcMode;
-}
-
-void ApskPhyHeader::setCrcMode(CrcMode crcMode)
+void MlmorpBeacon::setNextAddress(const Ipv4Address& nextAddress)
 {
     handleChange();
-    this->crcMode = crcMode;
+    this->nextAddress = nextAddress;
 }
 
-const Protocol * ApskPhyHeader::getPayloadProtocol() const
+unsigned int MlmorpBeacon::getSequenceNumber() const
 {
-    return this->payloadProtocol;
+    return this->sequenceNumber;
 }
 
-void ApskPhyHeader::setPayloadProtocol(const Protocol * payloadProtocol)
+void MlmorpBeacon::setSequenceNumber(unsigned int sequenceNumber)
 {
     handleChange();
-    this->payloadProtocol = payloadProtocol;
+    this->sequenceNumber = sequenceNumber;
 }
 
-class ApskPhyHeaderDescriptor : public omnetpp::cClassDescriptor
+float MlmorpBeacon::getCost() const
+{
+    return this->cost;
+}
+
+void MlmorpBeacon::setCost(float cost)
+{
+    handleChange();
+    this->cost = cost;
+}
+
+const Coord& MlmorpBeacon::getNextPosition() const
+{
+    return this->nextPosition;
+}
+
+void MlmorpBeacon::setNextPosition(const Coord& nextPosition)
+{
+    handleChange();
+    this->nextPosition = nextPosition;
+}
+
+int MlmorpBeacon::getNodeDegree() const
+{
+    return this->nodeDegree;
+}
+
+void MlmorpBeacon::setNodeDegree(int nodeDegree)
+{
+    handleChange();
+    this->nodeDegree = nodeDegree;
+}
+
+double MlmorpBeacon::getResidualEnergy() const
+{
+    return this->residualEnergy;
+}
+
+void MlmorpBeacon::setResidualEnergy(double residualEnergy)
+{
+    handleChange();
+    this->residualEnergy = residualEnergy;
+}
+
+double MlmorpBeacon::getDataRate() const
+{
+    return this->dataRate;
+}
+
+void MlmorpBeacon::setDataRate(double dataRate)
+{
+    handleChange();
+    this->dataRate = dataRate;
+}
+
+class MlmorpBeaconDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertyNames;
     enum FieldConstants {
-        FIELD_headerLengthField,
-        FIELD_payloadLengthField,
-        FIELD_crc,
-        FIELD_crcMode,
-        FIELD_payloadProtocol,
+        FIELD_srcAddress,
+        FIELD_nextAddress,
+        FIELD_sequenceNumber,
+        FIELD_cost,
+        FIELD_nextPosition,
+        FIELD_nodeDegree,
+        FIELD_residualEnergy,
+        FIELD_dataRate,
     };
   public:
-    ApskPhyHeaderDescriptor();
-    virtual ~ApskPhyHeaderDescriptor();
+    MlmorpBeaconDescriptor();
+    virtual ~MlmorpBeaconDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -300,24 +343,24 @@ class ApskPhyHeaderDescriptor : public omnetpp::cClassDescriptor
     virtual void setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const override;
 };
 
-Register_ClassDescriptor(ApskPhyHeaderDescriptor)
+Register_ClassDescriptor(MlmorpBeaconDescriptor)
 
-ApskPhyHeaderDescriptor::ApskPhyHeaderDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::ApskPhyHeader)), "inet::FieldsChunk")
+MlmorpBeaconDescriptor::MlmorpBeaconDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::MlmorpBeacon)), "inet::FieldsChunk")
 {
     propertyNames = nullptr;
 }
 
-ApskPhyHeaderDescriptor::~ApskPhyHeaderDescriptor()
+MlmorpBeaconDescriptor::~MlmorpBeaconDescriptor()
 {
     delete[] propertyNames;
 }
 
-bool ApskPhyHeaderDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool MlmorpBeaconDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<ApskPhyHeader *>(obj)!=nullptr;
+    return dynamic_cast<MlmorpBeacon *>(obj)!=nullptr;
 }
 
-const char **ApskPhyHeaderDescriptor::getPropertyNames() const
+const char **MlmorpBeaconDescriptor::getPropertyNames() const
 {
     if (!propertyNames) {
         static const char *names[] = {  nullptr };
@@ -328,19 +371,19 @@ const char **ApskPhyHeaderDescriptor::getPropertyNames() const
     return propertyNames;
 }
 
-const char *ApskPhyHeaderDescriptor::getProperty(const char *propertyName) const
+const char *MlmorpBeaconDescriptor::getProperty(const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     return base ? base->getProperty(propertyName) : nullptr;
 }
 
-int ApskPhyHeaderDescriptor::getFieldCount() const
+int MlmorpBeaconDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
-    return base ? 5+base->getFieldCount() : 5;
+    return base ? 8+base->getFieldCount() : 8;
 }
 
-unsigned int ApskPhyHeaderDescriptor::getFieldTypeFlags(int field) const
+unsigned int MlmorpBeaconDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -349,16 +392,19 @@ unsigned int ApskPhyHeaderDescriptor::getFieldTypeFlags(int field) const
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_headerLengthField
-        FD_ISEDITABLE,    // FIELD_payloadLengthField
-        FD_ISEDITABLE,    // FIELD_crc
-        FD_ISEDITABLE,    // FIELD_crcMode
-        FD_ISCOMPOUND | FD_ISPOINTER,    // FIELD_payloadProtocol
+        0,    // FIELD_srcAddress
+        0,    // FIELD_nextAddress
+        FD_ISEDITABLE,    // FIELD_sequenceNumber
+        FD_ISEDITABLE,    // FIELD_cost
+        FD_ISCOMPOUND,    // FIELD_nextPosition
+        FD_ISEDITABLE,    // FIELD_nodeDegree
+        FD_ISEDITABLE,    // FIELD_residualEnergy
+        FD_ISEDITABLE,    // FIELD_dataRate
     };
-    return (field >= 0 && field < 5) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 8) ? fieldTypeFlags[field] : 0;
 }
 
-const char *ApskPhyHeaderDescriptor::getFieldName(int field) const
+const char *MlmorpBeaconDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -367,28 +413,34 @@ const char *ApskPhyHeaderDescriptor::getFieldName(int field) const
         field -= base->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "headerLengthField",
-        "payloadLengthField",
-        "crc",
-        "crcMode",
-        "payloadProtocol",
+        "srcAddress",
+        "nextAddress",
+        "sequenceNumber",
+        "cost",
+        "nextPosition",
+        "nodeDegree",
+        "residualEnergy",
+        "dataRate",
     };
-    return (field >= 0 && field < 5) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 8) ? fieldNames[field] : nullptr;
 }
 
-int ApskPhyHeaderDescriptor::findField(const char *fieldName) const
+int MlmorpBeaconDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     int baseIndex = base ? base->getFieldCount() : 0;
-    if (strcmp(fieldName, "headerLengthField") == 0) return baseIndex + 0;
-    if (strcmp(fieldName, "payloadLengthField") == 0) return baseIndex + 1;
-    if (strcmp(fieldName, "crc") == 0) return baseIndex + 2;
-    if (strcmp(fieldName, "crcMode") == 0) return baseIndex + 3;
-    if (strcmp(fieldName, "payloadProtocol") == 0) return baseIndex + 4;
+    if (strcmp(fieldName, "srcAddress") == 0) return baseIndex + 0;
+    if (strcmp(fieldName, "nextAddress") == 0) return baseIndex + 1;
+    if (strcmp(fieldName, "sequenceNumber") == 0) return baseIndex + 2;
+    if (strcmp(fieldName, "cost") == 0) return baseIndex + 3;
+    if (strcmp(fieldName, "nextPosition") == 0) return baseIndex + 4;
+    if (strcmp(fieldName, "nodeDegree") == 0) return baseIndex + 5;
+    if (strcmp(fieldName, "residualEnergy") == 0) return baseIndex + 6;
+    if (strcmp(fieldName, "dataRate") == 0) return baseIndex + 7;
     return base ? base->findField(fieldName) : -1;
 }
 
-const char *ApskPhyHeaderDescriptor::getFieldTypeString(int field) const
+const char *MlmorpBeaconDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -397,16 +449,19 @@ const char *ApskPhyHeaderDescriptor::getFieldTypeString(int field) const
         field -= base->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "inet::b",    // FIELD_headerLengthField
-        "inet::b",    // FIELD_payloadLengthField
-        "uint16_t",    // FIELD_crc
-        "inet::CrcMode",    // FIELD_crcMode
-        "inet::Protocol",    // FIELD_payloadProtocol
+        "inet::Ipv4Address",    // FIELD_srcAddress
+        "inet::Ipv4Address",    // FIELD_nextAddress
+        "unsigned int",    // FIELD_sequenceNumber
+        "float",    // FIELD_cost
+        "inet::Coord",    // FIELD_nextPosition
+        "int",    // FIELD_nodeDegree
+        "double",    // FIELD_residualEnergy
+        "double",    // FIELD_dataRate
     };
-    return (field >= 0 && field < 5) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 8) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **ApskPhyHeaderDescriptor::getFieldPropertyNames(int field) const
+const char **MlmorpBeaconDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -415,15 +470,11 @@ const char **ApskPhyHeaderDescriptor::getFieldPropertyNames(int field) const
         field -= base->getFieldCount();
     }
     switch (field) {
-        case FIELD_crcMode: {
-            static const char *names[] = { "enum",  nullptr };
-            return names;
-        }
         default: return nullptr;
     }
 }
 
-const char *ApskPhyHeaderDescriptor::getFieldProperty(int field, const char *propertyName) const
+const char *MlmorpBeaconDescriptor::getFieldProperty(int field, const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -432,14 +483,11 @@ const char *ApskPhyHeaderDescriptor::getFieldProperty(int field, const char *pro
         field -= base->getFieldCount();
     }
     switch (field) {
-        case FIELD_crcMode:
-            if (!strcmp(propertyName, "enum")) return "inet::CrcMode";
-            return nullptr;
         default: return nullptr;
     }
 }
 
-int ApskPhyHeaderDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
+int MlmorpBeaconDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -447,13 +495,13 @@ int ApskPhyHeaderDescriptor::getFieldArraySize(omnetpp::any_ptr object, int fiel
             return base->getFieldArraySize(object, field);
         field -= base->getFieldCount();
     }
-    ApskPhyHeader *pp = omnetpp::fromAnyPtr<ApskPhyHeader>(object); (void)pp;
+    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
     switch (field) {
         default: return 0;
     }
 }
 
-void ApskPhyHeaderDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
+void MlmorpBeaconDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -463,13 +511,13 @@ void ApskPhyHeaderDescriptor::setFieldArraySize(omnetpp::any_ptr object, int fie
         }
         field -= base->getFieldCount();
     }
-    ApskPhyHeader *pp = omnetpp::fromAnyPtr<ApskPhyHeader>(object); (void)pp;
+    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'ApskPhyHeader'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'MlmorpBeacon'", field);
     }
 }
 
-const char *ApskPhyHeaderDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
+const char *MlmorpBeaconDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -477,14 +525,13 @@ const char *ApskPhyHeaderDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr 
             return base->getFieldDynamicTypeString(object,field,i);
         field -= base->getFieldCount();
     }
-    ApskPhyHeader *pp = omnetpp::fromAnyPtr<ApskPhyHeader>(object); (void)pp;
+    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
     switch (field) {
-        case FIELD_payloadProtocol: { const Protocol * value = pp->getPayloadProtocol(); return omnetpp::opp_typename(typeid(*const_cast<Protocol *>(value))); }
         default: return nullptr;
     }
 }
 
-std::string ApskPhyHeaderDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
+std::string MlmorpBeaconDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -492,18 +539,21 @@ std::string ApskPhyHeaderDescriptor::getFieldValueAsString(omnetpp::any_ptr obje
             return base->getFieldValueAsString(object,field,i);
         field -= base->getFieldCount();
     }
-    ApskPhyHeader *pp = omnetpp::fromAnyPtr<ApskPhyHeader>(object); (void)pp;
+    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
     switch (field) {
-        case FIELD_headerLengthField: return unit2string(pp->getHeaderLengthField());
-        case FIELD_payloadLengthField: return unit2string(pp->getPayloadLengthField());
-        case FIELD_crc: return ulong2string(pp->getCrc());
-        case FIELD_crcMode: return enum2string(pp->getCrcMode(), "inet::CrcMode");
-        case FIELD_payloadProtocol: { auto obj = pp->getPayloadProtocol(); return obj == nullptr ? "" : obj->str(); }
+        case FIELD_srcAddress: return pp->getSrcAddress().str();
+        case FIELD_nextAddress: return pp->getNextAddress().str();
+        case FIELD_sequenceNumber: return ulong2string(pp->getSequenceNumber());
+        case FIELD_cost: return double2string(pp->getCost());
+        case FIELD_nextPosition: return pp->getNextPosition().str();
+        case FIELD_nodeDegree: return long2string(pp->getNodeDegree());
+        case FIELD_residualEnergy: return double2string(pp->getResidualEnergy());
+        case FIELD_dataRate: return double2string(pp->getDataRate());
         default: return "";
     }
 }
 
-void ApskPhyHeaderDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
+void MlmorpBeaconDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -513,17 +563,18 @@ void ApskPhyHeaderDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int
         }
         field -= base->getFieldCount();
     }
-    ApskPhyHeader *pp = omnetpp::fromAnyPtr<ApskPhyHeader>(object); (void)pp;
+    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
     switch (field) {
-        case FIELD_headerLengthField: pp->setHeaderLengthField(b(string2long(value))); break;
-        case FIELD_payloadLengthField: pp->setPayloadLengthField(b(string2long(value))); break;
-        case FIELD_crc: pp->setCrc(string2ulong(value)); break;
-        case FIELD_crcMode: pp->setCrcMode((inet::CrcMode)string2enum(value, "inet::CrcMode")); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'ApskPhyHeader'", field);
+        case FIELD_sequenceNumber: pp->setSequenceNumber(string2ulong(value)); break;
+        case FIELD_cost: pp->setCost(string2double(value)); break;
+        case FIELD_nodeDegree: pp->setNodeDegree(string2long(value)); break;
+        case FIELD_residualEnergy: pp->setResidualEnergy(string2double(value)); break;
+        case FIELD_dataRate: pp->setDataRate(string2double(value)); break;
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'MlmorpBeacon'", field);
     }
 }
 
-omnetpp::cValue ApskPhyHeaderDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
+omnetpp::cValue MlmorpBeaconDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -531,18 +582,21 @@ omnetpp::cValue ApskPhyHeaderDescriptor::getFieldValue(omnetpp::any_ptr object, 
             return base->getFieldValue(object,field,i);
         field -= base->getFieldCount();
     }
-    ApskPhyHeader *pp = omnetpp::fromAnyPtr<ApskPhyHeader>(object); (void)pp;
+    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
     switch (field) {
-        case FIELD_headerLengthField: return cValue(pp->getHeaderLengthField().get(),"b");
-        case FIELD_payloadLengthField: return cValue(pp->getPayloadLengthField().get(),"b");
-        case FIELD_crc: return (omnetpp::intval_t)(pp->getCrc());
-        case FIELD_crcMode: return static_cast<int>(pp->getCrcMode());
-        case FIELD_payloadProtocol: return omnetpp::toAnyPtr(pp->getPayloadProtocol()); break;
-        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'ApskPhyHeader' as cValue -- field index out of range?", field);
+        case FIELD_srcAddress: return omnetpp::toAnyPtr(&pp->getSrcAddress()); break;
+        case FIELD_nextAddress: return omnetpp::toAnyPtr(&pp->getNextAddress()); break;
+        case FIELD_sequenceNumber: return (omnetpp::intval_t)(pp->getSequenceNumber());
+        case FIELD_cost: return (double)(pp->getCost());
+        case FIELD_nextPosition: return omnetpp::toAnyPtr(&pp->getNextPosition()); break;
+        case FIELD_nodeDegree: return pp->getNodeDegree();
+        case FIELD_residualEnergy: return pp->getResidualEnergy();
+        case FIELD_dataRate: return pp->getDataRate();
+        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'MlmorpBeacon' as cValue -- field index out of range?", field);
     }
 }
 
-void ApskPhyHeaderDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
+void MlmorpBeaconDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -552,17 +606,18 @@ void ApskPhyHeaderDescriptor::setFieldValue(omnetpp::any_ptr object, int field, 
         }
         field -= base->getFieldCount();
     }
-    ApskPhyHeader *pp = omnetpp::fromAnyPtr<ApskPhyHeader>(object); (void)pp;
+    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
     switch (field) {
-        case FIELD_headerLengthField: pp->setHeaderLengthField(b(value.intValueInUnit("b"))); break;
-        case FIELD_payloadLengthField: pp->setPayloadLengthField(b(value.intValueInUnit("b"))); break;
-        case FIELD_crc: pp->setCrc(omnetpp::checked_int_cast<uint16_t>(value.intValue())); break;
-        case FIELD_crcMode: pp->setCrcMode(static_cast<inet::CrcMode>(value.intValue())); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'ApskPhyHeader'", field);
+        case FIELD_sequenceNumber: pp->setSequenceNumber(omnetpp::checked_int_cast<unsigned int>(value.intValue())); break;
+        case FIELD_cost: pp->setCost(static_cast<float>(value.doubleValue())); break;
+        case FIELD_nodeDegree: pp->setNodeDegree(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_residualEnergy: pp->setResidualEnergy(value.doubleValue()); break;
+        case FIELD_dataRate: pp->setDataRate(value.doubleValue()); break;
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'MlmorpBeacon'", field);
     }
 }
 
-const char *ApskPhyHeaderDescriptor::getFieldStructName(int field) const
+const char *MlmorpBeaconDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -571,12 +626,12 @@ const char *ApskPhyHeaderDescriptor::getFieldStructName(int field) const
         field -= base->getFieldCount();
     }
     switch (field) {
-        case FIELD_payloadProtocol: return omnetpp::opp_typename(typeid(Protocol));
+        case FIELD_nextPosition: return omnetpp::opp_typename(typeid(Coord));
         default: return nullptr;
     };
 }
 
-omnetpp::any_ptr ApskPhyHeaderDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
+omnetpp::any_ptr MlmorpBeaconDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -584,14 +639,16 @@ omnetpp::any_ptr ApskPhyHeaderDescriptor::getFieldStructValuePointer(omnetpp::an
             return base->getFieldStructValuePointer(object, field, i);
         field -= base->getFieldCount();
     }
-    ApskPhyHeader *pp = omnetpp::fromAnyPtr<ApskPhyHeader>(object); (void)pp;
+    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
     switch (field) {
-        case FIELD_payloadProtocol: return omnetpp::toAnyPtr(pp->getPayloadProtocol()); break;
+        case FIELD_srcAddress: return omnetpp::toAnyPtr(&pp->getSrcAddress()); break;
+        case FIELD_nextAddress: return omnetpp::toAnyPtr(&pp->getNextAddress()); break;
+        case FIELD_nextPosition: return omnetpp::toAnyPtr(&pp->getNextPosition()); break;
         default: return omnetpp::any_ptr(nullptr);
     }
 }
 
-void ApskPhyHeaderDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
+void MlmorpBeaconDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -601,9 +658,9 @@ void ApskPhyHeaderDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object
         }
         field -= base->getFieldCount();
     }
-    ApskPhyHeader *pp = omnetpp::fromAnyPtr<ApskPhyHeader>(object); (void)pp;
+    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'ApskPhyHeader'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'MlmorpBeacon'", field);
     }
 }
 

@@ -344,7 +344,7 @@ unsigned int IcmpHeaderDescriptor::getFieldTypeFlags(int field) const
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_type
+        0,    // FIELD_type
         FD_ISEDITABLE,    // FIELD_code
         FD_ISEDITABLE,    // FIELD_chksum
         0,    // FIELD_crcMode
@@ -511,7 +511,6 @@ void IcmpHeaderDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int fi
     }
     IcmpHeader *pp = omnetpp::fromAnyPtr<IcmpHeader>(object); (void)pp;
     switch (field) {
-        case FIELD_type: pp->setType((inet::IcmpType)string2enum(value, "inet::IcmpType")); break;
         case FIELD_code: pp->setCode(string2long(value)); break;
         case FIELD_chksum: pp->setChksum(string2long(value)); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'IcmpHeader'", field);
@@ -548,7 +547,6 @@ void IcmpHeaderDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int
     }
     IcmpHeader *pp = omnetpp::fromAnyPtr<IcmpHeader>(object); (void)pp;
     switch (field) {
-        case FIELD_type: pp->setType(static_cast<inet::IcmpType>(value.intValue())); break;
         case FIELD_code: pp->setCode(omnetpp::checked_int_cast<int>(value.intValue())); break;
         case FIELD_chksum: pp->setChksum(omnetpp::checked_int_cast<int>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'IcmpHeader'", field);

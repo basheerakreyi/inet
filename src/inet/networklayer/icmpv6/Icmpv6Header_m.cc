@@ -327,9 +327,9 @@ unsigned int Icmpv6HeaderDescriptor::getFieldTypeFlags(int field) const
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_type
+        0,    // FIELD_type
         FD_ISEDITABLE,    // FIELD_chksum
-        0,    // FIELD_crcMode
+        FD_ISEDITABLE,    // FIELD_crcMode
     };
     return (field >= 0 && field < 3) ? fieldTypeFlags[field] : 0;
 }
@@ -489,8 +489,8 @@ void Icmpv6HeaderDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int 
     }
     Icmpv6Header *pp = omnetpp::fromAnyPtr<Icmpv6Header>(object); (void)pp;
     switch (field) {
-        case FIELD_type: pp->setType((inet::Icmpv6Type)string2enum(value, "inet::Icmpv6Type")); break;
         case FIELD_chksum: pp->setChksum(string2long(value)); break;
+        case FIELD_crcMode: pp->setCrcMode((inet::CrcMode)string2enum(value, "inet::CrcMode")); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Icmpv6Header'", field);
     }
 }
@@ -524,8 +524,8 @@ void Icmpv6HeaderDescriptor::setFieldValue(omnetpp::any_ptr object, int field, i
     }
     Icmpv6Header *pp = omnetpp::fromAnyPtr<Icmpv6Header>(object); (void)pp;
     switch (field) {
-        case FIELD_type: pp->setType(static_cast<inet::Icmpv6Type>(value.intValue())); break;
         case FIELD_chksum: pp->setChksum(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_crcMode: pp->setCrcMode(static_cast<inet::CrcMode>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Icmpv6Header'", field);
     }
 }
@@ -710,7 +710,7 @@ unsigned int Icmpv6DestUnreachableMsgDescriptor::getFieldTypeFlags(int field) co
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_code
+        0,    // FIELD_code
     };
     return (field >= 0 && field < 1) ? fieldTypeFlags[field] : 0;
 }
@@ -855,7 +855,6 @@ void Icmpv6DestUnreachableMsgDescriptor::setFieldValueAsString(omnetpp::any_ptr 
     }
     Icmpv6DestUnreachableMsg *pp = omnetpp::fromAnyPtr<Icmpv6DestUnreachableMsg>(object); (void)pp;
     switch (field) {
-        case FIELD_code: pp->setCode((inet::Icmpv6DestUnav)string2enum(value, "inet::Icmpv6DestUnav")); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Icmpv6DestUnreachableMsg'", field);
     }
 }
@@ -887,7 +886,6 @@ void Icmpv6DestUnreachableMsgDescriptor::setFieldValue(omnetpp::any_ptr object, 
     }
     Icmpv6DestUnreachableMsg *pp = omnetpp::fromAnyPtr<Icmpv6DestUnreachableMsg>(object); (void)pp;
     switch (field) {
-        case FIELD_code: pp->setCode(static_cast<inet::Icmpv6DestUnav>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Icmpv6DestUnreachableMsg'", field);
     }
 }
@@ -1450,7 +1448,7 @@ unsigned int Icmpv6TimeExceededMsgDescriptor::getFieldTypeFlags(int field) const
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_code
+        0,    // FIELD_code
     };
     return (field >= 0 && field < 1) ? fieldTypeFlags[field] : 0;
 }
@@ -1595,7 +1593,6 @@ void Icmpv6TimeExceededMsgDescriptor::setFieldValueAsString(omnetpp::any_ptr obj
     }
     Icmpv6TimeExceededMsg *pp = omnetpp::fromAnyPtr<Icmpv6TimeExceededMsg>(object); (void)pp;
     switch (field) {
-        case FIELD_code: pp->setCode((inet::Icmpv6TimeEx)string2enum(value, "inet::Icmpv6TimeEx")); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Icmpv6TimeExceededMsg'", field);
     }
 }
@@ -1627,7 +1624,6 @@ void Icmpv6TimeExceededMsgDescriptor::setFieldValue(omnetpp::any_ptr object, int
     }
     Icmpv6TimeExceededMsg *pp = omnetpp::fromAnyPtr<Icmpv6TimeExceededMsg>(object); (void)pp;
     switch (field) {
-        case FIELD_code: pp->setCode(static_cast<inet::Icmpv6TimeEx>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Icmpv6TimeExceededMsg'", field);
     }
 }
@@ -1812,7 +1808,7 @@ unsigned int Icmpv6ParamProblemMsgDescriptor::getFieldTypeFlags(int field) const
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_code
+        0,    // FIELD_code
     };
     return (field >= 0 && field < 1) ? fieldTypeFlags[field] : 0;
 }
@@ -1957,7 +1953,6 @@ void Icmpv6ParamProblemMsgDescriptor::setFieldValueAsString(omnetpp::any_ptr obj
     }
     Icmpv6ParamProblemMsg *pp = omnetpp::fromAnyPtr<Icmpv6ParamProblemMsg>(object); (void)pp;
     switch (field) {
-        case FIELD_code: pp->setCode((inet::Icmpv6ParameterProblem)string2enum(value, "inet::Icmpv6ParameterProblem")); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Icmpv6ParamProblemMsg'", field);
     }
 }
@@ -1989,7 +1984,6 @@ void Icmpv6ParamProblemMsgDescriptor::setFieldValue(omnetpp::any_ptr object, int
     }
     Icmpv6ParamProblemMsg *pp = omnetpp::fromAnyPtr<Icmpv6ParamProblemMsg>(object); (void)pp;
     switch (field) {
-        case FIELD_code: pp->setCode(static_cast<inet::Icmpv6ParameterProblem>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Icmpv6ParamProblemMsg'", field);
     }
 }
