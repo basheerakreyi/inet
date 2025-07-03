@@ -176,10 +176,29 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
                 // Use DNN model to calculate routing cost
                 double residualEnergy = recBeacon->getResidualEnergy();
                 double dataRate = recBeacon->getDataRate();
-                double signalPower = 1e-6;  // Default value - could be enhanced
+                
+                // Extract actual signal power from packet
+                double signalPower = 1e-6;  // Default value
+                if (check_and_cast<Packet*>(msg)->findTag<SignalPowerInd>() != nullptr) {
+                    signalPower = check_and_cast<Packet*>(msg)->getTag<SignalPowerInd>()->getPower().get();
+                }
+                
                 int nodeDegree = recBeacon->getNodeDegree();
-                double snir = 10.0;         // Default value - could be enhanced
-                double packetDelay = 0.001; // Default value - could be enhanced
+                
+                // Extract actual SNIR from packet
+                double snir = 10.0;  // Default value
+                if (check_and_cast<Packet*>(msg)->findTag<SnirInd>() != nullptr) {
+                    snir = check_and_cast<Packet*>(msg)->getTag<SnirInd>()->getMinimumSnir();
+                }
+                
+                // Calculate actual packet delay from creation time
+                double packetDelay = 0.001;  // Default value
+                auto data = check_and_cast<Packet*>(msg)->peekData();
+                auto regions = data->getAllTags<CreationTimeTag>();
+                if (!regions.empty()) {
+                    auto creationTime = regions[0].getTag()->getCreationTime().dbl();
+                    packetDelay = (simTime() - creationTime).dbl();
+                }
                 
                 // Get DNN prediction as routing score (higher is better)
                 double dnnScore = dnnModel->predict(residualEnergy, dataRate, signalPower, 
