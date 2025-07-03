@@ -99,7 +99,7 @@ class MLMORPDNNTrainer:
             df['signalPower'] = 1e-6  # Default value
         if 'snir' not in df.columns:
             df['snir'] = 10.0  # Default value
-            
+
         # Extract features
         features = ['residualEnergy', 'dataRate', 'signalPower', 'nodeDegree', 'snir', 'packetDelay']
         
@@ -119,21 +119,26 @@ class MLMORPDNNTrainer:
         # Extract feature matrix
         X = df[features].values
         
-        # Create target labels (routing success/failure)
-        # For now, we'll use a simple heuristic based on packet delay and energy
-        # In a real scenario, you might want to use actual routing success/failure data
-        
-        # Heuristic: Good routing if delay < threshold and energy > threshold
-        delay_threshold = np.percentile(df['packetDelay'], 75)  # 75th percentile
-        energy_threshold = np.percentile(df['residualEnergy'], 25)  # 25th percentile
-        
-        y = ((df['packetDelay'] < delay_threshold) & 
-             (df['residualEnergy'] > energy_threshold)).astype(int)
+        # Create target labels based on packet reception at destination (routing success/failure)
+        # Target MAC address for destination
+        target_dest_mac = '0A-AA-00-00-00-02'
+    
+        # Find all treeIds that successfully reached the destination
+        successful_tree_ids = set(df[df['destMacAddress'] == target_dest_mac]['treeId'].unique())
+    
+        # Create labels: 1 if packet's treeId reached destination, 0 otherwise
+        y = df['treeId'].apply(lambda tree_id: 1 if tree_id in successful_tree_ids else 0).values
         
         print(f"Feature matrix shape: {X.shape}")
         print(f"Target distribution: {np.bincount(y)}")
-        print(f"Delay threshold: {delay_threshold:.6f}")
-        print(f"Energy threshold: {energy_threshold:.6f}")
+
+        # Save formatted data with labels to a new CSV file
+        df_formatted = df.copy()
+        df_formatted['label'] = y
+    
+        output_file = 'output_formatted.csv'
+        df_formatted.to_csv(output_file, index=False)
+        print(f"Formatted data saved to: {output_file}")
         
         return X, y
     

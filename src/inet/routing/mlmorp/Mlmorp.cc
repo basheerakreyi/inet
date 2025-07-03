@@ -372,7 +372,7 @@ INetfilter::IHook::Result Mlmorp::datagramPreRoutingHook(Packet *datagram)
                     << "," << interface80211ptr->getDatarate();
 
             if (datagram->findTag<SignalPowerInd>() != nullptr) {
-                outFile << "," << datagram->getTag<SignalPowerInd>()->getPower()
+                outFile << "," << datagram->getTag<SignalPowerInd>()->getPower().get()
                         << "," << datagram->getTag<SnirInd>()->getMinimumSnir();
             }
 
