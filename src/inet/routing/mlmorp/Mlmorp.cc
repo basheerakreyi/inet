@@ -174,40 +174,6 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
             
             if (useDNN) {
                 // Use DNN model to calculate routing cost
-                double residualEnergy = recBeacon->getResidualEnergy();
-                double dataRate = recBeacon->getDataRate();
-                
-                // Extract actual signal power from packet
-                double signalPower = 1e-6;  // Default value
-                if (check_and_cast<Packet*>(msg)->findTag<SignalPowerInd>() != nullptr) {
-                    signalPower = check_and_cast<Packet*>(msg)->getTag<SignalPowerInd>()->getPower().get();
-                }
-                
-                int nodeDegree = recBeacon->getNodeDegree();
-                
-                // Extract actual SNIR from packet
-                double snir = 10.0;  // Default value
-                if (check_and_cast<Packet*>(msg)->findTag<SnirInd>() != nullptr) {
-                    snir = check_and_cast<Packet*>(msg)->getTag<SnirInd>()->getMinimumSnir();
-                }
-                
-                // Calculate actual packet delay from creation time
-                double packetDelay = 0.001;  // Default value
-                auto data = check_and_cast<Packet*>(msg)->peekData();
-                auto regions = data->getAllTags<CreationTimeTag>();
-                if (!regions.empty()) {
-                    auto creationTime = regions[0].getTag()->getCreationTime().dbl();
-                    packetDelay = (simTime() - creationTime).dbl();
-                }
-                
-                // Get DNN prediction as routing score (higher is better)
-                double dnnScore = dnnModel->predict(residualEnergy, dataRate, signalPower, 
-                                                   nodeDegree, snir, packetDelay);
-                
-                // Convert DNN score to cost (lower is better for routing)
-                cost = recBeacon->getCost() + (1.0 - dnnScore);
-                
-                EV_INFO << "DNN-based routing: score=" << dnnScore << ", cost=" << cost << endl;
             } else {
                 // Use traditional cost calculation
                 hopCost = recBeacon->getCost() + 1;
@@ -358,6 +324,57 @@ void Mlmorp::purge()
 //
 // NetFilter
 //
+
+/**
+ * Override the datagramForwardHook to perform ML-based next-hop selection for data packet forwarding.
+ * This function is called by the INET framework for each outgoing data packet that needs to be forwarded.
+ *
+ * The routing table is no longer used for forwarding decisions. Instead, the machine learning model
+ * (SimpleDNNModel) is used to select the best next-hop neighbor based on the current neighbor table.
+ * The ML model receives feature vectors for each neighbor and outputs a score; the neighbor with the
+ * highest score is selected as the next hop. The next-hop address is set in the packet using L3AddressReq.
+ *
+ * Data collection and route maintenance mechanisms remain unaffected by this change.
+ *
+ * @param datagram The outgoing data packet to be forwarded
+ * @return ACCEPT to allow forwarding, DROP to drop the packet
+ */
+INetfilter::IHook::Result Mlmorp::datagramForwardHook(Packet *datagram)
+{
+    Enter_Method("datagramForwardHook");
+
+    // Only perform ML-based routing if enabled
+    bool useDNN = par("useDNNRouting").boolValue();
+    if (!useDNN) {
+        // If ML-based routing is not enabled, fall back to default behavior (could be legacy/routing table)
+        return ACCEPT;
+    }
+
+    // Extract destination address from the network header
+    const auto& networkHeader = getNetworkProtocolHeader(datagram);
+    L3Address destination = networkHeader->getDestinationAddress();
+
+    // Use the ML model to select the best next-hop neighbor
+    L3Address nextHop = selectBestNeighborDNN(destination);
+
+    // If no valid next hop is found, drop the packet
+    if (nextHop.isUnspecified()) {
+        EV_WARN << "MLMORP: No valid next-hop neighbor found by ML model. Dropping packet." << endl;
+        return DROP;
+    }
+
+    // Set the next-hop address in the packet using L3AddressReq
+    auto addressReq = datagram->addTagIfAbsent<L3AddressReq>();
+    addressReq->setDestAddress(nextHop); // Correct: set the next-hop address for forwarding
+
+    // Set the outgoing interface using InterfaceReq (not L3AddressReq)
+    datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(interface80211ptr->getInterfaceId());
+
+    EV_INFO << "MLMORP: Forwarding packet to next hop " << nextHop << " selected by ML model." << endl;
+
+    // Accept the packet for forwarding
+    return ACCEPT;
+}
 
 INetfilter::IHook::Result Mlmorp::datagramPreRoutingHook(Packet *datagram)
 {

@@ -118,7 +118,11 @@ protected:
 
     // NetFilter
     virtual Result datagramPreRoutingHook(Packet *datagram) override;
-    virtual Result datagramForwardHook(Packet *datagram) override { return ACCEPT; }
+    /**
+     * Override to perform ML-based next-hop selection for data packet forwarding.
+     * The routing table is no longer used for forwarding; the ML model selects the next hop.
+     */
+    virtual Result datagramForwardHook(Packet *datagram) override;
     virtual Result datagramPostRoutingHook(Packet *datagram) override { return ACCEPT; }
     virtual Result datagramLocalInHook(Packet *datagram) override { return ACCEPT; }
     virtual Result datagramLocalOutHook(Packet *datagram) override{ return ACCEPT; }

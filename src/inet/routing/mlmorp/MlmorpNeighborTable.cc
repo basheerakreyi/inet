@@ -94,7 +94,8 @@ std::ostream& operator<<(std::ostream& o, const MlmorpNeighborTable& t)
 {
     o << "{ ";
     for (auto elem : t.addressToNeighborMap) {
-        o << elem.first << "@" << elem.second.lastUpdate << ":" << elem.second.position << ", " << elem.second.nodeDegree << ", " << elem.second.residualEnergy << "; ";
+        o << elem.first << "@" << elem.second.lastUpdate << ":" << elem.second.position
+                << ", " << elem.second.nodeDegree << ", " << elem.second.residualEnergy << ";\n";
     }
     o << "}";
     return o;
