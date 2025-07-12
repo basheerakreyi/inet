@@ -185,6 +185,8 @@ void MlmorpBeacon::copy(const MlmorpBeacon& other)
     this->nodeDegree = other.nodeDegree;
     this->residualEnergy = other.residualEnergy;
     this->dataRate = other.dataRate;
+    this->signalPower = other.signalPower;
+    this->snir = other.snir;
 }
 
 void MlmorpBeacon::parsimPack(omnetpp::cCommBuffer *b) const
@@ -198,6 +200,8 @@ void MlmorpBeacon::parsimPack(omnetpp::cCommBuffer *b) const
     doParsimPacking(b,this->nodeDegree);
     doParsimPacking(b,this->residualEnergy);
     doParsimPacking(b,this->dataRate);
+    doParsimPacking(b,this->signalPower);
+    doParsimPacking(b,this->snir);
 }
 
 void MlmorpBeacon::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -211,6 +215,8 @@ void MlmorpBeacon::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimUnpacking(b,this->nodeDegree);
     doParsimUnpacking(b,this->residualEnergy);
     doParsimUnpacking(b,this->dataRate);
+    doParsimUnpacking(b,this->signalPower);
+    doParsimUnpacking(b,this->snir);
 }
 
 const Ipv4Address& MlmorpBeacon::getSrcAddress() const
@@ -301,6 +307,28 @@ void MlmorpBeacon::setDataRate(double dataRate)
     this->dataRate = dataRate;
 }
 
+double MlmorpBeacon::getSignalPower() const
+{
+    return this->signalPower;
+}
+
+void MlmorpBeacon::setSignalPower(double signalPower)
+{
+    handleChange();
+    this->signalPower = signalPower;
+}
+
+double MlmorpBeacon::getSnir() const
+{
+    return this->snir;
+}
+
+void MlmorpBeacon::setSnir(double snir)
+{
+    handleChange();
+    this->snir = snir;
+}
+
 class MlmorpBeaconDescriptor : public omnetpp::cClassDescriptor
 {
   private:
@@ -314,6 +342,8 @@ class MlmorpBeaconDescriptor : public omnetpp::cClassDescriptor
         FIELD_nodeDegree,
         FIELD_residualEnergy,
         FIELD_dataRate,
+        FIELD_signalPower,
+        FIELD_snir,
     };
   public:
     MlmorpBeaconDescriptor();
@@ -380,7 +410,7 @@ const char *MlmorpBeaconDescriptor::getProperty(const char *propertyName) const
 int MlmorpBeaconDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
-    return base ? 8+base->getFieldCount() : 8;
+    return base ? 10+base->getFieldCount() : 10;
 }
 
 unsigned int MlmorpBeaconDescriptor::getFieldTypeFlags(int field) const
@@ -400,8 +430,10 @@ unsigned int MlmorpBeaconDescriptor::getFieldTypeFlags(int field) const
         FD_ISEDITABLE,    // FIELD_nodeDegree
         FD_ISEDITABLE,    // FIELD_residualEnergy
         FD_ISEDITABLE,    // FIELD_dataRate
+        FD_ISEDITABLE,    // FIELD_signalPower
+        FD_ISEDITABLE,    // FIELD_snir
     };
-    return (field >= 0 && field < 8) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 10) ? fieldTypeFlags[field] : 0;
 }
 
 const char *MlmorpBeaconDescriptor::getFieldName(int field) const
@@ -421,8 +453,10 @@ const char *MlmorpBeaconDescriptor::getFieldName(int field) const
         "nodeDegree",
         "residualEnergy",
         "dataRate",
+        "signalPower",
+        "snir",
     };
-    return (field >= 0 && field < 8) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 10) ? fieldNames[field] : nullptr;
 }
 
 int MlmorpBeaconDescriptor::findField(const char *fieldName) const
@@ -437,6 +471,8 @@ int MlmorpBeaconDescriptor::findField(const char *fieldName) const
     if (strcmp(fieldName, "nodeDegree") == 0) return baseIndex + 5;
     if (strcmp(fieldName, "residualEnergy") == 0) return baseIndex + 6;
     if (strcmp(fieldName, "dataRate") == 0) return baseIndex + 7;
+    if (strcmp(fieldName, "signalPower") == 0) return baseIndex + 8;
+    if (strcmp(fieldName, "snir") == 0) return baseIndex + 9;
     return base ? base->findField(fieldName) : -1;
 }
 
@@ -457,8 +493,10 @@ const char *MlmorpBeaconDescriptor::getFieldTypeString(int field) const
         "int",    // FIELD_nodeDegree
         "double",    // FIELD_residualEnergy
         "double",    // FIELD_dataRate
+        "double",    // FIELD_signalPower
+        "double",    // FIELD_snir
     };
-    return (field >= 0 && field < 8) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 10) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **MlmorpBeaconDescriptor::getFieldPropertyNames(int field) const
@@ -549,6 +587,8 @@ std::string MlmorpBeaconDescriptor::getFieldValueAsString(omnetpp::any_ptr objec
         case FIELD_nodeDegree: return long2string(pp->getNodeDegree());
         case FIELD_residualEnergy: return double2string(pp->getResidualEnergy());
         case FIELD_dataRate: return double2string(pp->getDataRate());
+        case FIELD_signalPower: return double2string(pp->getSignalPower());
+        case FIELD_snir: return double2string(pp->getSnir());
         default: return "";
     }
 }
@@ -570,6 +610,8 @@ void MlmorpBeaconDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int 
         case FIELD_nodeDegree: pp->setNodeDegree(string2long(value)); break;
         case FIELD_residualEnergy: pp->setResidualEnergy(string2double(value)); break;
         case FIELD_dataRate: pp->setDataRate(string2double(value)); break;
+        case FIELD_signalPower: pp->setSignalPower(string2double(value)); break;
+        case FIELD_snir: pp->setSnir(string2double(value)); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'MlmorpBeacon'", field);
     }
 }
@@ -592,6 +634,8 @@ omnetpp::cValue MlmorpBeaconDescriptor::getFieldValue(omnetpp::any_ptr object, i
         case FIELD_nodeDegree: return pp->getNodeDegree();
         case FIELD_residualEnergy: return pp->getResidualEnergy();
         case FIELD_dataRate: return pp->getDataRate();
+        case FIELD_signalPower: return pp->getSignalPower();
+        case FIELD_snir: return pp->getSnir();
         default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'MlmorpBeacon' as cValue -- field index out of range?", field);
     }
 }
@@ -613,6 +657,8 @@ void MlmorpBeaconDescriptor::setFieldValue(omnetpp::any_ptr object, int field, i
         case FIELD_nodeDegree: pp->setNodeDegree(omnetpp::checked_int_cast<int>(value.intValue())); break;
         case FIELD_residualEnergy: pp->setResidualEnergy(value.doubleValue()); break;
         case FIELD_dataRate: pp->setDataRate(value.doubleValue()); break;
+        case FIELD_signalPower: pp->setSignalPower(value.doubleValue()); break;
+        case FIELD_snir: pp->setSnir(value.doubleValue()); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'MlmorpBeacon'", field);
     }
 }

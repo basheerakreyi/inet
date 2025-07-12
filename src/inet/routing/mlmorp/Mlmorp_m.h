@@ -59,6 +59,9 @@ namespace inet {
  *     int nodeDegree;                // Number of neighbors
  *     double residualEnergy;         // The residual energy of the node
  *     double dataRate;               // The data rate of the node
+ * 
+ *     double signalPower;            // Signal power in dBm
+ *     double snir;                   // Signal-to-Noise-plus-Interference Ratio in dB
  * }
  * </pre>
  */
@@ -73,6 +76,8 @@ class INET_API MlmorpBeacon : public ::inet::FieldsChunk
     int nodeDegree = 0;
     double residualEnergy = 0;
     double dataRate = 0;
+    double signalPower = 0;
+    double snir = 0;
 
   private:
     void copy(const MlmorpBeacon& other);
@@ -115,6 +120,12 @@ class INET_API MlmorpBeacon : public ::inet::FieldsChunk
 
     virtual double getDataRate() const;
     virtual void setDataRate(double dataRate);
+
+    virtual double getSignalPower() const;
+    virtual void setSignalPower(double signalPower);
+
+    virtual double getSnir() const;
+    virtual void setSnir(double snir);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const MlmorpBeacon& obj) {obj.parsimPack(b);}

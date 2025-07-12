@@ -168,6 +168,18 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
             next = recBeacon->getNextAddress();
             msgSequenceNumber = recBeacon->getSequenceNumber();
 
+            // Extract actual signal power from packet
+            double signalPower = -1;  // Default value
+            if (check_and_cast<Packet*>(msg)->findTag<SignalPowerInd>()!= nullptr) {
+                signalPower = check_and_cast<Packet*>(msg)->getTag<SignalPowerInd>()->getPower().get();
+            }
+
+            // Extract actual SNIR from packet
+            double snir = -1;  // Default value
+            if (check_and_cast<Packet*>(msg)->findTag<SnirInd>() != nullptr) {
+                snir = check_and_cast<Packet*>(msg)->getTag<SnirInd>()->getMinimumSnir();
+            }
+
             // get the cost in beacon and calculate the new cost based on the information in received beacon
             // Check if DNN-based routing is enabled
             bool useDNN = par("useDNNRouting").boolValue();
@@ -186,7 +198,7 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
 
             // add neighbor information into the neighbor table
             int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
-            neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree(), recBeacon->getResidualEnergy());
+            neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree(), recBeacon->getResidualEnergy(), recBeacon->getSignalPower(), recBeacon->getSnir());
             neighborTable.removeOldNeighbors(simTime() - neighborLifetime); // To remove the old neighbor that lost the connection
 
             if (src == source) {
@@ -235,6 +247,10 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
                 recBeacon->setNodeDegree(neighborTable.getAddresses().size());
                 recBeacon->setResidualEnergy(energyStorage->getResidualEnergyCapacity().get());
                 recBeacon->setDataRate(interface80211ptr->getDatarate());
+
+                recBeacon->setSignalPower(signalPower);  // Default signal power in dBm
+                recBeacon->setSnir(snir);          // Default SNIR in dB
+
                 packet->insertAtBack(recBeacon);
                 send(packet, "ipOut");
                 packet = nullptr;
@@ -272,6 +288,9 @@ void Mlmorp::handleSelfMessage(cMessage *msg)
         beacon->setNodeDegree(neighborTable.getAddresses().size());
         beacon->setResidualEnergy(energyStorage->getResidualEnergyCapacity().get());
         beacon->setDataRate(interface80211ptr->getDatarate());
+
+        beacon->setSignalPower(-1);  // Default signal power in dBm
+        beacon->setSnir(-1);          // Default SNIR in dB
 
         // Created new packet for MlmorpBeacon
         auto packet = new Packet("Beacon", beacon);
@@ -480,9 +499,9 @@ L3Address Mlmorp::selectBestNeighborDNN(const L3Address& destination) const
         // Get interface information for data rate
         double dataRate = interface80211ptr->getDatarate();
         
-        // Default values for signal power and SNIR (these would need to be tracked)
-        double signalPower = 1e-6;  // Default signal power
-        double snir = 10.0;         // Default SNIR
+        // Get values for signal power and SNIR
+        double signalPower = neighborTable.getSignalPower(neighbor);  // Default signal power
+        double snir = neighborTable.getSnir(neighbor);         // Default SNIR
         
         // Calculate packet delay (simplified - could be enhanced with actual delay tracking)
         double packetDelay = 0.001; // Default delay

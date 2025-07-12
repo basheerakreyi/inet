@@ -19,4 +19,7 @@ class MlmorpBeacon extends FieldsChunk
     int nodeDegree;                // Number of neighbors
     double residualEnergy;         // The residual energy of the node
     double dataRate;               // The data rate of the node
+    
+    double signalPower;            // Signal power in dBm
+    double snir;                   // Signal-to-Noise-plus-Interference Ratio in dB
 }
