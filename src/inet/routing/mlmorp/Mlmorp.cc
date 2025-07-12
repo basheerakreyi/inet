@@ -351,26 +351,29 @@ INetfilter::IHook::Result Mlmorp::datagramForwardHook(Packet *datagram)
     }
 
     // Extract destination address from the network header
-    const auto& networkHeader = getNetworkProtocolHeader(datagram);
-    L3Address destination = networkHeader->getDestinationAddress();
+    const auto &networkHeader = getNetworkProtocolHeader(datagram);
+    if ((networkHeader->getProtocol() == &Protocol::udp)) {
+        L3Address destination = networkHeader->getDestinationAddress();
 
-    // Use the ML model to select the best next-hop neighbor
-    L3Address nextHop = selectBestNeighborDNN(destination);
+        // Use the ML model to select the best next-hop neighbor
+        L3Address nextHop = selectBestNeighborDNN(destination);
 
-    // If no valid next hop is found, drop the packet
-    if (nextHop.isUnspecified()) {
-        EV_WARN << "MLMORP: No valid next-hop neighbor found by ML model. Dropping packet." << endl;
-        return DROP;
+        // If no valid next hop is found, drop the packet
+        if (nextHop.isUnspecified()) {
+            EV_WARN << "MLMORP: No valid next-hop neighbor found by ML model. Dropping packet." << endl;
+            return DROP;
+        }
+
+        // Set the next-hop address in the packet using L3AddressReq
+        auto addressReq = datagram->addTagIfAbsent<L3AddressReq>();
+        addressReq->setDestAddress(nextHop); // Correct: set the next-hop address for forwarding
+
+        // Set the outgoing interface using InterfaceReq (not L3AddressReq)
+        datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(interface80211ptr->getInterfaceId());
+
+        EV_INFO << "MLMORP: Forwarding packet to next hop " << nextHop << " selected by ML model." << endl;
+
     }
-
-    // Set the next-hop address in the packet using L3AddressReq
-    auto addressReq = datagram->addTagIfAbsent<L3AddressReq>();
-    addressReq->setDestAddress(nextHop); // Correct: set the next-hop address for forwarding
-
-    // Set the outgoing interface using InterfaceReq (not L3AddressReq)
-    datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(interface80211ptr->getInterfaceId());
-
-    EV_INFO << "MLMORP: Forwarding packet to next hop " << nextHop << " selected by ML model." << endl;
 
     // Accept the packet for forwarding
     return ACCEPT;
