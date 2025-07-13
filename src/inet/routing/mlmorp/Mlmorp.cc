@@ -16,7 +16,7 @@ Define_Module(Mlmorp);
 
 Mlmorp::Mlmorp()
 {
-
+    currentPacketDelay = -1;  // Initialize with invalid delay value
 }
 
 Mlmorp::~Mlmorp()
@@ -250,7 +250,7 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
 
                 recBeacon->setSignalPower(signalPower);  // Default signal power in dBm
                 recBeacon->setSnir(snir);          // Default SNIR in dB
-                recBeacon->setPacketDelay(-1);  // Default packet delay in seconds
+                recBeacon->setPacketDelay(currentPacketDelay);  // Use the tracked packet delay
 
                 packet->insertAtBack(recBeacon);
                 send(packet, "ipOut");
@@ -443,7 +443,9 @@ INetfilter::IHook::Result Mlmorp::datagramPreRoutingHook(Packet *datagram)
                 auto creationTime = region.getTag()->getCreationTime().dbl(); // original time
                 auto delay = simTime() - creationTime; // compute delay
                 outFile << "," << delay;
-
+                
+                // Store the delay for use in beacon messages
+                currentPacketDelay = delay;
             }
 
             outFile << endl;
@@ -506,7 +508,7 @@ L3Address Mlmorp::selectBestNeighborDNN(const L3Address& destination) const
         double snir = neighborTable.getSnir(neighbor);         // Default SNIR
         
         // Calculate packet delay (simplified - could be enhanced with actual delay tracking)
-        double packetDelay = 0.001; // Default delay
+        double packetDelay = (currentPacketDelay >= 0) ? currentPacketDelay.dbl() : 10; // Use tracked actual delay or very high delay
         
         // Create feature vector: [residualEnergy, dataRate, signalPower, nodeDegree, snir, packetDelay]
         features = {residualEnergy, dataRate, signalPower, static_cast<double>(nodeDegree), snir, packetDelay};

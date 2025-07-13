@@ -70,6 +70,9 @@ private:
     double gamma;
     MlmorpNeighborTable neighborTable;
 
+    // Packet delay tracking
+    simtime_t currentPacketDelay;
+
     
     // DNN Model for routing decisions
     SimpleDNNModel* dnnModel;
