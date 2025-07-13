@@ -58,11 +58,17 @@ double MlmorpNeighborTable::getSignalPower(const L3Address& address) const
     return (it == addressToNeighborMap.end()) ? -1 : it->second.signalPower;
 }
 
+simtime_t MlmorpNeighborTable::getPacketDelay(const L3Address& address) const
+{
+    auto it = addressToNeighborMap.find(address);
+    return (it == addressToNeighborMap.end()) ? -1 : it->second.packetDelay;
+}
+
 // used to add or update new neighbor to the table
-void MlmorpNeighborTable::updateNeighbor(const L3Address& address, int networkInterfaceId, const Coord& position, int nodeDegree, double residualEnergy, double signalPower, double snir)
+void MlmorpNeighborTable::updateNeighbor(const L3Address& address, int networkInterfaceId, const Coord& position, int nodeDegree, double residualEnergy, double signalPower, double snir, simtime_t packetDelay)
 {
     ASSERT(!address.isUnspecified());
-    addressToNeighborMap[address] = Neighbor(networkInterfaceId, position, nodeDegree, residualEnergy, signalPower, snir, simTime());
+    addressToNeighborMap[address] = Neighbor(networkInterfaceId, position, nodeDegree, residualEnergy, signalPower, snir, packetDelay, simTime());
 }
 
 // to get the time of the oldest neighbor in the table (the less time the oldest)
@@ -108,7 +114,7 @@ std::ostream& operator<<(std::ostream& o, const MlmorpNeighborTable& t)
     for (auto elem : t.addressToNeighborMap) {
         o << elem.first << "@" << elem.second.lastUpdate << ": POS:" << elem.second.position
                 << ", NeiD:" << elem.second.nodeDegree << ", ReE:" << elem.second.residualEnergy
-                << ", SigP:" << elem.second.signalPower << ", SNIR:" << elem.second.snir << ";\n";
+                << ", SigP:" << elem.second.signalPower << ", SNIR:" << elem.second.snir << ", Delay:" << elem.second.packetDelay << ";\n";
     }
     o << "}";
     return o;

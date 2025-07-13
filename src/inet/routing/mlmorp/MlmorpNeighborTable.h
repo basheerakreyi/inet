@@ -28,12 +28,13 @@ private:
 
         double signalPower = -1;  // Signal power in dBm
         double snir = -1;         // Signal-to-Noise-plus-Interference Ratio in dB
+        simtime_t packetDelay = -1; // Packet delay in seconds
 
         // constructor and parameterized constructor for the struct
         Neighbor() {}
-        Neighbor(int networkInterfaceId, const Coord &position, int nodeDegree, double residualEnergy, double signalPower, double snir, simtime_t lastUpdate) :
+        Neighbor(int networkInterfaceId, const Coord &position, int nodeDegree, double residualEnergy, double signalPower, double snir, simtime_t packetDelay, simtime_t lastUpdate) :
                 networkInterfaceId(networkInterfaceId), position(position), nodeDegree(nodeDegree),
-                residualEnergy(residualEnergy), signalPower(signalPower), snir(snir), lastUpdate(lastUpdate) {}
+                residualEnergy(residualEnergy), signalPower(signalPower), snir(snir), packetDelay(packetDelay), lastUpdate(lastUpdate) {}
     };
 
     // a container that stores key-value pairs, key is address and value is the neighbor struct
@@ -47,7 +48,7 @@ public:
     bool hasNeighbor(const L3Address &address) const;
     int getNetworkInterfaceId(const L3Address &address) const;
     Coord getPosition(const L3Address &address) const;
-    void updateNeighbor(const L3Address &address, int networkInterfaceId, const Coord &position, int nodeDegree, double residualEnergy, double signalPower, double snir);
+    void updateNeighbor(const L3Address &address, int networkInterfaceId, const Coord &position, int nodeDegree, double residualEnergy, double signalPower, double snir, simtime_t packetDelay);
 
     simtime_t getOldestNeighbor() const;
     void removeNeighbor(const L3Address &address);
@@ -60,6 +61,7 @@ public:
 
     double getSignalPower(const L3Address &address) const;
     double getSnir(const L3Address &address) const;
+    simtime_t getPacketDelay(const L3Address &address) const;
 
     friend std::ostream& operator<<(std::ostream &o, const MlmorpNeighborTable &t);
 };

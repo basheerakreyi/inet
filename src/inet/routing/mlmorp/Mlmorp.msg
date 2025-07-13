@@ -22,4 +22,5 @@ class MlmorpBeacon extends FieldsChunk
     
     double signalPower;            // Signal power in dBm
     double snir;                   // Signal-to-Noise-plus-Interference Ratio in dB
+    simtime_t packetDelay;         // Packet delay in seconds
 }

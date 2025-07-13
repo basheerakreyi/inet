@@ -62,6 +62,7 @@ namespace inet {
  * 
  *     double signalPower;            // Signal power in dBm
  *     double snir;                   // Signal-to-Noise-plus-Interference Ratio in dB
+ *     simtime_t packetDelay;         // Packet delay in seconds
  * }
  * </pre>
  */
@@ -78,6 +79,7 @@ class INET_API MlmorpBeacon : public ::inet::FieldsChunk
     double dataRate = 0;
     double signalPower = 0;
     double snir = 0;
+    ::omnetpp::simtime_t packetDelay = SIMTIME_ZERO;
 
   private:
     void copy(const MlmorpBeacon& other);
@@ -126,6 +128,9 @@ class INET_API MlmorpBeacon : public ::inet::FieldsChunk
 
     virtual double getSnir() const;
     virtual void setSnir(double snir);
+
+    virtual ::omnetpp::simtime_t getPacketDelay() const;
+    virtual void setPacketDelay(::omnetpp::simtime_t packetDelay);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const MlmorpBeacon& obj) {obj.parsimPack(b);}
