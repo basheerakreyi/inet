@@ -60,6 +60,7 @@ private:
     cModule *host = nullptr;
     NetworkInterface *interface80211ptr = nullptr;
     int interfaceId = -1;
+//    ModuleRefByPar<IRoutingTable> routingTable;
     opp_component_ptr<IMobility> mobility;
     opp_component_ptr<power::IEpEnergyStorage> energyStorage;
     opp_component_ptr<NodeStatus> nodeStatus;
@@ -121,14 +122,13 @@ protected:
 
     // NetFilter
     virtual Result datagramPreRoutingHook(Packet *datagram) override;
-    /**
-     * Override to perform ML-based next-hop selection for data packet forwarding.
-     * The routing table is no longer used for forwarding; the ML model selects the next hop.
-     */
-    virtual Result datagramForwardHook(Packet *datagram) override;
+    virtual Result datagramForwardHook(Packet *datagram) override { return ACCEPT; }
     virtual Result datagramPostRoutingHook(Packet *datagram) override { return ACCEPT; }
     virtual Result datagramLocalInHook(Packet *datagram) override { return ACCEPT; }
-    virtual Result datagramLocalOutHook(Packet *datagram) override{ return ACCEPT; }
+    virtual Result datagramLocalOutHook(Packet *datagram) override;
+
+    // DNN routing
+    Result routeDatagram(Packet *datagram);
 
     // Notification when receive a signal
     virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details) override;

@@ -8,6 +8,7 @@
 #include "inet/linklayer/common/InterfaceTag_m.h"
 #include "inet/networklayer/common/L3AddressTag_m.h"
 #include "inet/linklayer/common/MacAddressTag_m.h"
+#include "inet/networklayer/common/NextHopAddressTag_m.h"
 #include "inet/networklayer/common/L3Tools.h"
 
 namespace inet {
@@ -208,57 +209,59 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
                 return;
             }
 
-            Ipv4Route *_input_routing = rt->findBestMatchingRoute(src);
-            MlmorpRouteData *input_routing = dynamic_cast<MlmorpRouteData*>(_input_routing);
+            if (!useDNN) {
+                Ipv4Route *_input_routing = rt->findBestMatchingRoute(src);
+                MlmorpRouteData *input_routing = dynamic_cast<MlmorpRouteData*>(_input_routing);
 
-            // Tests if the MLMORP beacon message that arrived is useful
-            if (_input_routing == nullptr
+                // Tests if the MLMORP beacon message that arrived is useful
+                if (_input_routing == nullptr
                             || (_input_routing != nullptr && _input_routing->getNetmask() != Ipv4Address::ALLONES_ADDRESS)
                             || (input_routing != nullptr && (msgSequenceNumber > input_routing->getSequenceNumber() || (msgSequenceNumber == input_routing->getSequenceNumber() && cost < input_routing->getRouteCost()))))
-            {
-                // remove old entry
-                if (input_routing != nullptr){
-                    rt->deleteRoute(input_routing);
-                //    std::cout << "host " << host->getFullName() << " deleted a route at " << simTime() << endl;
-                }
-
-
-                // adds new information to routing table according to information in beacon message
                 {
-                    Ipv4Address netmask = Ipv4Address::ALLONES_ADDRESS;
-                    MlmorpRouteData *e = new MlmorpRouteData();
-                    e->setDestination(src);
-                    e->setNetmask(netmask);
-                    e->setGateway(next);
-                    e->setInterface(interface80211ptr);
-                    e->setSourceType(IRoute::MANET);
-                    //e->setMetric(numHops);
-                    e->setRouteCost(cost);
-                    e->setSequenceNumber(msgSequenceNumber);
-                    e->setExpirTime(simTime() + routeLifetime);
-                    rt->addRoute(e);
-                    reschedulePurgeTimer();
+                    // remove old entry
+                    if (input_routing != nullptr){
+                        rt->deleteRoute(input_routing);
+                        //    std::cout << "host " << host->getFullName() << " deleted a route at " << simTime() << endl;
+                    }
+
+
+                    // adds new information to routing table according to information in beacon message
+                    {
+                        Ipv4Address netmask = Ipv4Address::ALLONES_ADDRESS;
+                        MlmorpRouteData *e = new MlmorpRouteData();
+                        e->setDestination(src);
+                        e->setNetmask(netmask);
+                        e->setGateway(next);
+                        e->setInterface(interface80211ptr);
+                        e->setSourceType(IRoute::MANET);
+                        //e->setMetric(numHops);
+                        e->setRouteCost(cost);
+                        e->setSequenceNumber(msgSequenceNumber);
+                        e->setExpirTime(simTime() + routeLifetime);
+                        rt->addRoute(e);
+                        reschedulePurgeTimer();
+                    }
+
+                    // Modify the content of the received beacon and send it to other neighbors
+                    recBeacon->setCost(cost);
+                    recBeacon->setNextAddress(source);
+                    recBeacon->setNextPosition(mobility->getCurrentPosition());
+                    recBeacon->setNodeDegree(neighborTable.getAddresses().size());
+                    recBeacon->setResidualEnergy(energyStorage->getResidualEnergyCapacity().get());
+                    recBeacon->setDataRate(interface80211ptr->getDatarate());
+
+                    recBeacon->setSignalPower(signalPower);  // Default signal power in dBm
+                    recBeacon->setSnir(snir);          // Default SNIR in dB
+                    recBeacon->setPacketDelay(currentPacketDelay);  // Use the tracked packet delay
+
+                    packet->insertAtBack(recBeacon);
+                    send(packet, "ipOut");
+                    packet = nullptr;
+
                 }
-
-                // Modify the content of the received beacon and send it to other neighbors
-                recBeacon->setCost(cost);
-                recBeacon->setNextAddress(source);
-                recBeacon->setNextPosition(mobility->getCurrentPosition());
-                recBeacon->setNodeDegree(neighborTable.getAddresses().size());
-                recBeacon->setResidualEnergy(energyStorage->getResidualEnergyCapacity().get());
-                recBeacon->setDataRate(interface80211ptr->getDatarate());
-
-                recBeacon->setSignalPower(signalPower);  // Default signal power in dBm
-                recBeacon->setSnir(snir);          // Default SNIR in dB
-                recBeacon->setPacketDelay(currentPacketDelay);  // Use the tracked packet delay
-
-                packet->insertAtBack(recBeacon);
-                send(packet, "ipOut");
-                packet = nullptr;
-
+                delete packet;
+                delete msg;
             }
-            delete packet;
-            delete msg;
         } else
             throw cRuntimeError("Message arrived on unknown gate %s", msg->getArrivalGate()->getName());
     } else
@@ -346,24 +349,8 @@ void Mlmorp::purge()
 // NetFilter
 //
 
-/**
- * Override the datagramForwardHook to perform ML-based next-hop selection for data packet forwarding.
- * This function is called by the INET framework for each outgoing data packet that needs to be forwarded.
- *
- * The routing table is no longer used for forwarding decisions. Instead, the machine learning model
- * (SimpleDNNModel) is used to select the best next-hop neighbor based on the current neighbor table.
- * The ML model receives feature vectors for each neighbor and outputs a score; the neighbor with the
- * highest score is selected as the next hop. The next-hop address is set in the packet using L3AddressReq.
- *
- * Data collection and route maintenance mechanisms remain unaffected by this change.
- *
- * @param datagram The outgoing data packet to be forwarded
- * @return ACCEPT to allow forwarding, DROP to drop the packet
- */
-INetfilter::IHook::Result Mlmorp::datagramForwardHook(Packet *datagram)
+INetfilter::IHook::Result Mlmorp::routeDatagram(Packet *datagram)
 {
-    Enter_Method("datagramForwardHook");
-
     // Only perform ML-based routing if enabled
     bool useDNN = par("useDNNRouting").boolValue();
     if (!useDNN) {
@@ -371,47 +358,39 @@ INetfilter::IHook::Result Mlmorp::datagramForwardHook(Packet *datagram)
         return ACCEPT;
     }
 
-    // Extract destination address from the network header
-    const auto &networkHeader = getNetworkProtocolHeader(datagram);
-    if ((networkHeader->getProtocol() == &Protocol::udp)) {
-        L3Address destination = networkHeader->getDestinationAddress();
-
-        // Use the ML model to select the best next-hop neighbor
-        L3Address nextHop = selectBestNeighborDNN(destination);
-
-        // If no valid next hop is found, drop the packet
-        if (nextHop.isUnspecified()) {
-            EV_WARN << "MLMORP: No valid next-hop neighbor found by ML model. Dropping packet." << endl;
-            return DROP;
-        }
-
-        // Set the next-hop address in the packet using L3AddressReq
-        auto addressReq = datagram->addTagIfAbsent<L3AddressReq>();
-        addressReq->setDestAddress(nextHop); // Correct: set the next-hop address for forwarding
-
-        // Set the outgoing interface using InterfaceReq (not L3AddressReq)
-        datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(interface80211ptr->getInterfaceId());
-
-        EV_INFO << "MLMORP: Forwarding packet to next hop " << nextHop << " selected by ML model." << endl;
-
+    const auto& networkHeader = getNetworkProtocolHeader(datagram);
+    const L3Address& source = networkHeader->getSourceAddress();
+    const L3Address& destination = networkHeader->getDestinationAddress();
+    EV_INFO << "MLMORP: Finding next hop: source = " << source << ", destination = " << destination << endl;
+    // Use DNN-based logic to select next hop
+    L3Address nextHop = selectBestNeighborDNN(destination);
+    datagram->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHop);
+    if (nextHop.isUnspecified()) {
+        EV_WARN << "MLMORP: No next hop found, dropping packet: source = " << source << ", destination = " << destination << endl;
+        if (hasGUI())
+            getContainingNode(this)->bubble("No next hop found, dropping packet");
+        return DROP;
     }
-
-    // Accept the packet for forwarding
-    return ACCEPT;
+    else {
+        EV_INFO << "MLMORP: Next hop found: source = " << source << ", destination = " << destination << ", nextHop: " << nextHop << endl;
+        auto networkInterface = interface80211ptr;
+        datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(networkInterface->getInterfaceId());
+        return ACCEPT;
+    }
 }
 
 INetfilter::IHook::Result Mlmorp::datagramPreRoutingHook(Packet *datagram)
 {
     Enter_Method("datagramPreRoutingHook");
 
-    EV_INFO << "-------- Packet received with packet ID, TreeID --" << datagram->getId() << ", " << datagram->getTreeId() << endl;
-//    EV_INFO << "RX power= " << datagram->getTag<SignalPowerInd>()->getPower() << "W" << endl;
-//    EV_INFO << "Minimum SNIR Signal-to-Noise-and-Interference Ratio = " << datagram->getTag<SnirInd>()->getMinimumSnir() << endl;
-//    EV_INFO << (datagram->getTag<PacketProtocolTag>()->getProtocol() == &Protocol::ipv4) << endl;
-
     const auto& networkHeader = getNetworkProtocolHeader(datagram);
-    if ((networkHeader->getProtocol() == &Protocol::udp)) {
 
+    // ---- Data Collection --- //
+    // EV_INFO << "-------- Packet received with packet ID, TreeID --" << datagram->getId() << ", " << datagram->getTreeId() << endl;
+    // EV_INFO << (datagram->getTag<PacketProtocolTag>()->getProtocol() == &Protocol::ipv4) << endl;
+
+    if ((networkHeader->getProtocol() == &Protocol::udp)) {
+          
         // Output the information about the received packet
         std::ofstream outFile("results/output.csv", std::ios::app);
         if (outFile.is_open()) {
@@ -419,7 +398,6 @@ INetfilter::IHook::Result Mlmorp::datagramPreRoutingHook(Packet *datagram)
                     << "," << datagram->getTreeId()
                     << "," << networkHeader->getSourceAddress()
                     << "," << networkHeader->getDestinationAddress();
-//                    << "," << energyStorage->getResidualEnergyCapacity();
 
             if (datagram->findTag<MacAddressInd>() != nullptr) {
                 outFile << "," << datagram->getTag<MacAddressInd>()->getSrcAddress()
@@ -453,9 +431,41 @@ INetfilter::IHook::Result Mlmorp::datagramPreRoutingHook(Packet *datagram)
         } else {
             std::cout << "Error opening file!" << std::endl;
         }
-        // ----------------------------------------------- //
+
+    }
+    // ------ End of Data Collection ----- //
+
+    if ((networkHeader->getProtocol() == &Protocol::udp)) {
+        const L3Address& destination = networkHeader->getDestinationAddress();
+
+        // Only apply to UDP packets
+        if (destination.isMulticast() || destination.isBroadcast() || rt->isLocalAddress(destination))
+            return ACCEPT;
+        else
+            return routeDatagram(datagram);
     }
 
+    // Accept the packet for forwarding
+    return ACCEPT;
+}
+
+INetfilter::IHook::Result Mlmorp::datagramLocalOutHook(Packet *datagram)
+{
+    Enter_Method("datagramLocalOutHook");
+
+    // Extract destination address from the network header
+    const auto &networkHeader = getNetworkProtocolHeader(datagram);
+    if ((networkHeader->getProtocol() == &Protocol::udp)) {
+        const L3Address& destination = networkHeader->getDestinationAddress();
+
+        // Only apply to UDP packets
+        if (destination.isMulticast() || destination.isBroadcast() || rt->isLocalAddress(destination))
+            return ACCEPT;
+        else
+            return routeDatagram(datagram);
+    }
+
+    // Accept the packet for forwarding
     return ACCEPT;
 }
 
