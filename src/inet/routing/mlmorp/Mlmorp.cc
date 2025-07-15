@@ -184,8 +184,8 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
             // Update neighbor table for each received beacon
             int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
             neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree(),
-                                         recBeacon->getResidualEnergy(), recBeacon->getSignalPower(),
-                                         recBeacon->getSnir(), recBeacon->getPacketDelay());
+                                         recBeacon->getResidualEnergy(), signalPower,
+                                         snir, recBeacon->getPacketDelay());
             neighborTable.removeOldNeighbors(simTime() - neighborLifetime); // To remove the old neighbor that lost the connection
 
             // Check if DNN-based routing is enabled
@@ -298,7 +298,7 @@ void Mlmorp::handleSelfMessage(cMessage *msg)
 
         beacon->setSignalPower(-1);  // Default signal power in dBm
         beacon->setSnir(-1);          // Default SNIR in dB
-        beacon->setPacketDelay(-1);  // Default packet delay in seconds
+        beacon->setPacketDelay(currentPacketDelay);  // send the current packet delay in seconds
 
         // Created new packet for MlmorpBeacon
         auto packet = new Packet("Beacon", beacon);
