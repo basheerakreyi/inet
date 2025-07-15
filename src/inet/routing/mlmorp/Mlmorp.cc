@@ -206,11 +206,6 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
 
                 Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
 
-                // add neighbor information into the neighbor table
-                int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
-                neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree(), recBeacon->getResidualEnergy(), recBeacon->getSignalPower(), recBeacon->getSnir(), recBeacon->getPacketDelay());
-                neighborTable.removeOldNeighbors(simTime() - neighborLifetime);
-
                 if (src == source) {
                     EV_INFO << "Beacon message is dropped because the message is returned to the original node.\n";
                     delete packet;
