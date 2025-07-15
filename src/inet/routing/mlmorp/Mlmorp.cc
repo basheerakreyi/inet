@@ -181,23 +181,22 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
                 snir = check_and_cast<Packet*>(msg)->getTag<SnirInd>()->getMinimumSnir();
             }
 
-            // get the cost in beacon and calculate the new cost based on the information in received beacon
+            // Update neighbor table for each received beacon
+            int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
+            neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree(),
+                                         recBeacon->getResidualEnergy(), recBeacon->getSignalPower(),
+                                         recBeacon->getSnir(), recBeacon->getPacketDelay());
+            neighborTable.removeOldNeighbors(simTime() - neighborLifetime); // To remove the old neighbor that lost the connection
+
             // Check if DNN-based routing is enabled
             bool useDNN = par("useDNNRouting").boolValue();
-            
             if (useDNN) {
-                // Use DNN model to calculate routing cost
-                // For DNN mode, just update neighbor table and cleanup
-                int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
-                neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree(),
-                                           recBeacon->getResidualEnergy(), recBeacon->getSignalPower(),
-                                           recBeacon->getSnir(), recBeacon->getPacketDelay());
-                neighborTable.removeOldNeighbors(simTime() - neighborLifetime);
+
+                // Use DNN model to calculate routing cost (Can be implemented)
 
                 // Clean up and exit
                 delete packet;
                 delete msg;
-                return;
             } else {
                 // Use traditional cost calculation
                 hopCost = recBeacon->getCost() + 1;
@@ -210,7 +209,7 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
                 // add neighbor information into the neighbor table
                 int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
                 neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree(), recBeacon->getResidualEnergy(), recBeacon->getSignalPower(), recBeacon->getSnir(), recBeacon->getPacketDelay());
-                neighborTable.removeOldNeighbors(simTime() - neighborLifetime); // To remove the old neighbor that lost the connection
+                neighborTable.removeOldNeighbors(simTime() - neighborLifetime);
 
                 if (src == source) {
                     EV_INFO << "Beacon message is dropped because the message is returned to the original node.\n";
