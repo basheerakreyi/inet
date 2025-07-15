@@ -187,29 +187,38 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
             
             if (useDNN) {
                 // Use DNN model to calculate routing cost
+                // For DNN mode, just update neighbor table and cleanup
+                int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
+                neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree(),
+                                           recBeacon->getResidualEnergy(), recBeacon->getSignalPower(),
+                                           recBeacon->getSnir(), recBeacon->getPacketDelay());
+                neighborTable.removeOldNeighbors(simTime() - neighborLifetime);
+
+                // Clean up and exit
+                delete packet;
+                delete msg;
+                return;
             } else {
                 // Use traditional cost calculation
                 hopCost = recBeacon->getCost() + 1;
                 energyCost = recBeacon->getCost() + (1 - recBeacon->getResidualEnergy()/energyStorage->getNominalEnergyCapacity().get());
                 bandwidthCost = recBeacon->getCost() + 56000000/recBeacon->getDataRate();
                 cost = alpha*hopCost + beta*energyCost + gamma*bandwidthCost;
-            }
 
-            Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
+                Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
 
-            // add neighbor information into the neighbor table
-            int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
-            neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree(), recBeacon->getResidualEnergy(), recBeacon->getSignalPower(), recBeacon->getSnir(), recBeacon->getPacketDelay());
-            neighborTable.removeOldNeighbors(simTime() - neighborLifetime); // To remove the old neighbor that lost the connection
+                // add neighbor information into the neighbor table
+                int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
+                neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree(), recBeacon->getResidualEnergy(), recBeacon->getSignalPower(), recBeacon->getSnir(), recBeacon->getPacketDelay());
+                neighborTable.removeOldNeighbors(simTime() - neighborLifetime); // To remove the old neighbor that lost the connection
 
-            if (src == source) {
-                EV_INFO << "Beacon message is dropped because the message is returned to the original node.\n";
-                delete packet;
-                delete msg;
-                return;
-            }
+                if (src == source) {
+                    EV_INFO << "Beacon message is dropped because the message is returned to the original node.\n";
+                    delete packet;
+                    delete msg;
+                    return;
+                }
 
-            if (!useDNN) {
                 Ipv4Route *_input_routing = rt->findBestMatchingRoute(src);
                 MlmorpRouteData *input_routing = dynamic_cast<MlmorpRouteData*>(_input_routing);
 
@@ -223,7 +232,6 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
                         rt->deleteRoute(input_routing);
                         //    std::cout << "host " << host->getFullName() << " deleted a route at " << simTime() << endl;
                     }
-
 
                     // adds new information to routing table according to information in beacon message
                     {
@@ -257,8 +265,9 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
                     packet->insertAtBack(recBeacon);
                     send(packet, "ipOut");
                     packet = nullptr;
-
                 }
+
+                // Clean up
                 delete packet;
                 delete msg;
             }
