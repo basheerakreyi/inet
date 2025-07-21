@@ -10,6 +10,7 @@
 #include "inet/linklayer/common/MacAddressTag_m.h"
 #include "inet/networklayer/common/NextHopAddressTag_m.h"
 #include "inet/networklayer/common/L3Tools.h"
+#include "inet/queueing/contract/IPacketQueue.h"
 
 namespace inet {
 
@@ -414,7 +415,8 @@ INetfilter::IHook::Result Mlmorp::datagramPreRoutingHook(Packet *datagram)
 
             if (datagram->findTag<SignalPowerInd>() != nullptr) {
                 outFile << "," << datagram->getTag<SignalPowerInd>()->getPower().get()
-                        << "," << datagram->getTag<SnirInd>()->getMinimumSnir();
+                        // << "," << datagram->getTag<SnirInd>()->getMinimumSnir();
+                        << "," << getCurrentBufferPacketNum();
             }
 
             // Adding the time delay of the packet to Data Collection
@@ -531,6 +533,30 @@ L3Address Mlmorp::selectBestNeighborDNN(const L3Address& destination) const
     
     // Use DNN model to select best neighbor
     return dnnModel->selectBestNeighbor(neighbors, neighborFeatures);
+}
+
+// Utility function to get the current MAC buffer (pendingQueue) packet count
+int Mlmorp::getCurrentBufferPacketNum() const
+{
+    if (interface80211ptr) {
+        cModule *mac = interface80211ptr->getSubmodule("mac");
+        if (mac) {
+            cModule *dcf = mac->getSubmodule("dcf");
+            if (dcf) {
+                cModule *channelAccess = dcf->getSubmodule("channelAccess");
+                if (channelAccess) {
+                    cModule *pendingQueueModule = channelAccess->getSubmodule("pendingQueue");
+                    if (pendingQueueModule) {
+                        auto pendingQueue = check_and_cast<inet::queueing::IPacketQueue *>(pendingQueueModule);
+                        int numPackets = pendingQueue->getNumPackets();
+                        // EV_INFO << "MAC buffer (pendingQueue) contains " << numPackets << " packets\n";
+                        return numPackets;
+                    }
+                }
+            }
+        }
+    }
+    return -1;
 }
 
 } /* namespace inet */

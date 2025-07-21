@@ -85,6 +85,8 @@ private:
      */
     L3Address selectBestNeighborDNN(const L3Address& destination) const;
 
+    int getCurrentBufferPacketNum() const;
+
 protected:
     simtime_t beaconInterval;
     ModuleRefByPar<IInterfaceTable> ift;
