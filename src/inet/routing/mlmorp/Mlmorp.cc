@@ -18,7 +18,7 @@ Define_Module(Mlmorp);
 
 Mlmorp::Mlmorp()
 {
-    currentPacketDelay = -1;  // Initialize with invalid delay value
+
 }
 
 Mlmorp::~Mlmorp()
@@ -176,17 +176,13 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
                 signalPower = check_and_cast<Packet*>(msg)->getTag<SignalPowerInd>()->getPower().get();
             }
 
-            // Extract actual SNIR from packet
-            double snir = -1;  // Default value
-            if (check_and_cast<Packet*>(msg)->findTag<SnirInd>() != nullptr) {
-                snir = check_and_cast<Packet*>(msg)->getTag<SnirInd>()->getMinimumSnir();
-            }
+            double buffPktNo = getCurrentBufferPacketNum();  // Default value
 
             // Update neighbor table for each received beacon
             int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
             neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree(),
                                          recBeacon->getResidualEnergy(), signalPower,
-                                         snir, recBeacon->getPacketDelay());
+                                         buffPktNo);
             neighborTable.removeOldNeighbors(simTime() - neighborLifetime); // To remove the old neighbor that lost the connection
 
             // Check if DNN-based routing is enabled
@@ -254,8 +250,7 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
                     recBeacon->setDataRate(interface80211ptr->getDatarate());
 
                     recBeacon->setSignalPower(signalPower);  // Default signal power in dBm
-                    recBeacon->setSnir(snir);          // Default SNIR in dB
-                    recBeacon->setPacketDelay(currentPacketDelay);  // Use the tracked packet delay
+                    recBeacon->setBuffPktNo(buffPktNo);      // Default buffPktNo
 
                     packet->insertAtBack(recBeacon);
                     send(packet, "ipOut");
@@ -298,8 +293,7 @@ void Mlmorp::handleSelfMessage(cMessage *msg)
         beacon->setDataRate(interface80211ptr->getDatarate());
 
         beacon->setSignalPower(-1);  // Default signal power in dBm
-        beacon->setSnir(-1);          // Default SNIR in dB
-        beacon->setPacketDelay(currentPacketDelay);  // send the current packet delay in seconds
+        beacon->setBuffPktNo(getCurrentBufferPacketNum());    // Default buffPktNo
 
         // Created new packet for MlmorpBeacon
         auto packet = new Packet("Beacon", beacon);
@@ -420,16 +414,13 @@ INetfilter::IHook::Result Mlmorp::datagramPreRoutingHook(Packet *datagram)
             }
 
             // Adding the time delay of the packet to Data Collection
-            auto data = datagram->peekData(); // get all data from the packet
-            auto regions = data->getAllTags<CreationTimeTag>(); // get all tag regions
-            for (auto &region : regions) { // for each region do
-                auto creationTime = region.getTag()->getCreationTime().dbl(); // original time
-                auto delay = simTime() - creationTime; // compute delay
-                outFile << "," << delay;
-                
-                // Store the delay for use in beacon messages
-                currentPacketDelay = delay;
-            }
+//            auto data = datagram->peekData(); // get all data from the packet
+//            auto regions = data->getAllTags<CreationTimeTag>(); // get all tag regions
+//            for (auto &region : regions) { // for each region do
+//                auto creationTime = region.getTag()->getCreationTime().dbl(); // original time
+//                auto delay = simTime() - creationTime; // compute delay
+//                outFile << "," << delay;
+//            }
 
             outFile << endl;
             outFile.close();
@@ -518,15 +509,12 @@ L3Address Mlmorp::selectBestNeighborDNN(const L3Address& destination) const
         // Get interface information for data rate
         double dataRate = interface80211ptr->getDatarate();
         
-        // Get values for signal power and SNIR
+        // Get values for signal power and buffPktNo
         double signalPower = neighborTable.getSignalPower(neighbor);  // Default signal power
-        double snir = neighborTable.getSnir(neighbor);         // Default SNIR
+        double buffPktNo = neighborTable.getBuffPktNo(neighbor);         // Default buffPktNo
         
-        // Calculate packet delay (simplified - could be enhanced with actual delay tracking)
-        double packetDelay = (currentPacketDelay >= 0) ? currentPacketDelay.dbl() : 10; // Use tracked actual delay or very high delay
-        
-        // Create feature vector: [residualEnergy, dataRate, signalPower, nodeDegree, snir, packetDelay]
-        features = {residualEnergy, dataRate, signalPower, static_cast<double>(nodeDegree), snir, packetDelay};
+        // Create feature vector: [residualEnergy, dataRate, signalPower, nodeDegree, buffPktNo]
+        features = {residualEnergy, dataRate, signalPower, static_cast<double>(nodeDegree), buffPktNo};
         
         neighborFeatures[neighbor] = features;
     }

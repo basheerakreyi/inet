@@ -384,7 +384,7 @@ unsigned int BgpAsPathSegmentDescriptor::getFieldTypeFlags(int field) const
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        0,    // FIELD_type
+        FD_ISEDITABLE,    // FIELD_type
         FD_ISEDITABLE,    // FIELD_length
         FD_ISARRAY | FD_ISEDITABLE | FD_ISRESIZABLE,    // FIELD_asValue
     };
@@ -541,6 +541,7 @@ void BgpAsPathSegmentDescriptor::setFieldValueAsString(omnetpp::any_ptr object, 
     }
     BgpAsPathSegment *pp = omnetpp::fromAnyPtr<BgpAsPathSegment>(object); (void)pp;
     switch (field) {
+        case FIELD_type: pp->setType((inet::bgp::BgpPathSegmentType)string2enum(value, "inet::bgp::BgpPathSegmentType")); break;
         case FIELD_length: pp->setLength(string2ulong(value)); break;
         case FIELD_asValue: pp->setAsValue(i,string2ulong(value)); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'BgpAsPathSegment'", field);
@@ -576,6 +577,7 @@ void BgpAsPathSegmentDescriptor::setFieldValue(omnetpp::any_ptr object, int fiel
     }
     BgpAsPathSegment *pp = omnetpp::fromAnyPtr<BgpAsPathSegment>(object); (void)pp;
     switch (field) {
+        case FIELD_type: pp->setType(static_cast<inet::bgp::BgpPathSegmentType>(value.intValue())); break;
         case FIELD_length: pp->setLength(omnetpp::checked_int_cast<uint8_t>(value.intValue())); break;
         case FIELD_asValue: pp->setAsValue(i,omnetpp::checked_int_cast<uint16_t>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'BgpAsPathSegment'", field);
@@ -3363,7 +3365,7 @@ unsigned int BgpUpdatePathAttributesOriginDescriptor::getFieldTypeFlags(int fiel
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        0,    // FIELD_value
+        FD_ISEDITABLE,    // FIELD_value
     };
     return (field >= 0 && field < 1) ? fieldTypeFlags[field] : 0;
 }
@@ -3508,6 +3510,7 @@ void BgpUpdatePathAttributesOriginDescriptor::setFieldValueAsString(omnetpp::any
     }
     BgpUpdatePathAttributesOrigin *pp = omnetpp::fromAnyPtr<BgpUpdatePathAttributesOrigin>(object); (void)pp;
     switch (field) {
+        case FIELD_value: pp->setValue((inet::bgp::BgpSessionType)string2enum(value, "inet::bgp::BgpSessionType")); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'BgpUpdatePathAttributesOrigin'", field);
     }
 }
@@ -3539,6 +3542,7 @@ void BgpUpdatePathAttributesOriginDescriptor::setFieldValue(omnetpp::any_ptr obj
     }
     BgpUpdatePathAttributesOrigin *pp = omnetpp::fromAnyPtr<BgpUpdatePathAttributesOrigin>(object); (void)pp;
     switch (field) {
+        case FIELD_value: pp->setValue(static_cast<inet::bgp::BgpSessionType>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'BgpUpdatePathAttributesOrigin'", field);
     }
 }

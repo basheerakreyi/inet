@@ -34,8 +34,7 @@ def create_sample_data(output_file='sample_data.csv', num_samples=1000):
         'residualEnergy': np.random.uniform(0.1, 1.0, num_samples),
         'dataRate': np.random.uniform(1e6, 1e8, num_samples),
         'signalPower': np.random.uniform(1e-7, 1e-5, num_samples),
-        'snir': np.random.uniform(5.0, 20.0, num_samples),
-        'packetDelay': np.random.uniform(0.001, 0.1, num_samples)
+        'buffPktNo': np.random.uniform(5.0, 20.0, num_samples),
     }
     
     # Create DataFrame
@@ -55,7 +54,7 @@ def main():
     
     # Create trainer
     trainer = MLMORPDNNTrainer(
-        input_size=6,
+        input_size=5,
         hidden_size=12,
         learning_rate=0.001
     )

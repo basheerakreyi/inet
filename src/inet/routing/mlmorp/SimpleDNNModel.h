@@ -20,8 +20,8 @@ namespace inet {
  * Simple Deep Neural Network Model for MLMORP routing decisions.
  * 
  * This class implements a feedforward neural network with:
- * - 1 input layer (number of neurons = number of features)
- * - 1 hidden layer (configurable number of neurons)
+ * - 5 input layer (number of neurons = number of features)
+ * - 12 hidden layer (configurable number of neurons)
  * - 1 output neuron (for binary classification or regression)
  * 
  * Features used:
@@ -29,8 +29,7 @@ namespace inet {
  * - Data Rate (normalized)
  * - Signal Power (normalized)
  * - Node Degree (normalized)
- * - SNIR (normalized)
- * - Packet Delay (normalized)
+ * - buffPktNo (normalized)
  */
 class INET_API SimpleDNNModel
 {
@@ -102,7 +101,7 @@ public:
      * @param hiddenSize Number of neurons in hidden layer
      * @param isClassification True for classification, false for regression
      */
-    SimpleDNNModel(int inputSize = 6, int hiddenSize = 12, bool isClassification = true);
+    SimpleDNNModel(int inputSize = 5, int hiddenSize = 12, bool isClassification = true);
     
     /**
      * Destructor
@@ -115,16 +114,15 @@ public:
      * @param dataRate Data rate of the neighbor node
      * @param signalPower Signal power from the neighbor
      * @param nodeDegree Number of neighbors of the neighbor node
-     * @param snir Signal-to-Noise-and-Interference Ratio
-     * @param packetDelay Packet delay to the neighbor
+     * @param buffPktNo Signal-to-Noise-and-Interference Ratio
      * @return Prediction score (higher is better for routing)
      */
     double predict(double residualEnergy, double dataRate, double signalPower, 
-                   int nodeDegree, double snir, double packetDelay) const;
+                   int nodeDegree, double buffPktNo) const;
     
     /**
      * Predict routing decision using a feature vector
-     * @param features Vector of features [residualEnergy, dataRate, signalPower, nodeDegree, snir, packetDelay]
+     * @param features Vector of features [residualEnergy, dataRate, signalPower, nodeDegree, buffPktNo]
      * @return Prediction score (higher is better for routing)
      */
     double predict(const std::vector<double>& features) const;

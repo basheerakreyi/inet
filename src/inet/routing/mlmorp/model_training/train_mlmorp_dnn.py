@@ -16,16 +16,14 @@ Data Format (from results/output.csv):
 - residualEnergy: Residual energy capacity
 - dataRate: Interface data rate
 - signalPower: Signal power (if available)
-- snir: Signal-to-Noise-and-Interference Ratio (if available)
-- packetDelay: Packet delay
+- buffPktNo: Signal-to-Noise-and-Interference Ratio (if available)
 
 Features used for training:
 - residualEnergy: Normalized residual energy
 - dataRate: Normalized data rate
 - signalPower: Normalized signal power
 - nodeDegree: Normalized node degree
-- snir: Normalized SNIR
-- packetDelay: Normalized packet delay
+- buffPktNo: Normalized buffPktNo
 
 Target/Label: Routing success/failure based on packet delivery
 """
@@ -44,12 +42,12 @@ import argparse
 import json
 
 class MLMORPDNNTrainer:
-    def __init__(self, input_size=6, hidden_size=12, learning_rate=0.001):
+    def __init__(self, input_size=5, hidden_size=12, learning_rate=0.001):
         """
         Initialize the MLMORP DNN Trainer
         
         Args:
-            input_size: Number of input features (default: 6)
+            input_size: Number of input features (default: 5)
             hidden_size: Number of neurons in hidden layer (default: 12)
             learning_rate: Learning rate for training (default: 0.001)
         """
@@ -85,7 +83,7 @@ class MLMORPDNNTrainer:
         columns = [
             'simTime', 'treeId', 'sourceAddress', 'destAddress',
             'srcMacAddress', 'destMacAddress', 'nodeDegree', 'residualEnergy',
-            'dataRate', 'signalPower', 'snir', 'packetDelay'
+            'dataRate', 'signalPower', 'buffPktNo'
         ]
         
         # Assign column names
@@ -94,14 +92,14 @@ class MLMORPDNNTrainer:
         print(f"Loaded {len(df)} data points")
         print(f"Columns: {list(df.columns)}")
         
-        # Handle missing columns (signalPower and snir might not be available)
+        # Handle missing columns (signalPower and buffPktNo might not be available)
         if 'signalPower' not in df.columns:
             df['signalPower'] = 1e-6  # Default value
-        if 'snir' not in df.columns:
-            df['snir'] = 10.0  # Default value
+        if 'buffPktNo' not in df.columns:
+            df['buffPktNo'] = 0  # Default value
 
         # Extract features
-        features = ['residualEnergy', 'dataRate', 'signalPower', 'nodeDegree', 'snir', 'packetDelay']
+        features = ['residualEnergy', 'dataRate', 'signalPower', 'nodeDegree', 'buffPktNo']
         
         # Check if all required features are available
         missing_features = [f for f in features if f not in df.columns]
@@ -111,7 +109,7 @@ class MLMORPDNNTrainer:
             for feature in missing_features:
                 if feature == 'signalPower':
                     df[feature] = 1e-6
-                elif feature == 'snir':
+                elif feature == 'buffPktNo':
                     df[feature] = 10.0
                 else:
                     df[feature] = 0.0
@@ -374,8 +372,8 @@ def main():
                        help='Input CSV file with collected data (default: ../results/output.csv)')
     parser.add_argument('--output', '-o', default='trained_model.txt',
                        help='Output model file (default: trained_model.txt)')
-    parser.add_argument('--input-size', type=int, default=6,
-                       help='Number of input features (default: 6)')
+    parser.add_argument('--input-size', type=int, default=5,
+                       help='Number of input features (default: 5)')
     parser.add_argument('--hidden-size', type=int, default=12,
                        help='Number of hidden neurons (default: 12)')
     parser.add_argument('--epochs', type=int, default=100,

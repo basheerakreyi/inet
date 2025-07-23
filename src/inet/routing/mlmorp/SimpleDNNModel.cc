@@ -68,9 +68,9 @@ void SimpleDNNModel::initializeNormalization()
     featureStds.resize(inputSize);
     
     // Default normalization parameters (should be tuned based on actual data)
-    // [residualEnergy, dataRate, signalPower, nodeDegree, snir, packetDelay]
-    featureMeans = {0.5, 1e7, 1e-6, 5.0, 10.0, 0.01};  // Mean values
-    featureStds = {0.3, 5e6, 5e-7, 3.0, 5.0, 0.005};   // Standard deviations
+    // [residualEnergy, dataRate, signalPower, nodeDegree, buffPktNo]
+    featureMeans = {0.5, 1e7, 1e-6, 5.0, 10.0};  // Mean values
+    featureStds = {0.3, 5e6, 5e-7, 3.0, 5.0};   // Standard deviations
     
     // Ensure no division by zero
     for (int i = 0; i < inputSize; i++) {
@@ -132,11 +132,11 @@ double SimpleDNNModel::forwardPass(const std::vector<double>& input) const
 }
 
 double SimpleDNNModel::predict(double residualEnergy, double dataRate, double signalPower, 
-                              int nodeDegree, double snir, double packetDelay) const
+                              int nodeDegree, double buffPktNo) const
 {
     // Create feature vector
     std::vector<double> features = {residualEnergy, dataRate, signalPower, 
-                                   static_cast<double>(nodeDegree), snir, packetDelay};
+                                   static_cast<double>(nodeDegree), buffPktNo};
     
     return predict(features);
 }
