@@ -51,9 +51,10 @@ void Mlmorp::initialize(int stage)
 
         // Initialize DNN Model
         int inputSize = par("dnnInputSize").intValue();
-        int hiddenSize = par("dnnHiddenSize").intValue();
+        int hiddenSize1 = par("dnnHiddenSize1").intValue();
+        int hiddenSize2 = par("dnnHiddenSize2").intValue();
         bool isClassification = par("dnnClassification").boolValue();
-        dnnModel = new SimpleDNNModel(inputSize, hiddenSize, isClassification);
+        dnnModel = new SimpleDNNModel(inputSize, hiddenSize1, hiddenSize2, isClassification);
         
         // Load pre-trained model if specified
         std::string modelFile = par("dnnModelFile").stringValue();

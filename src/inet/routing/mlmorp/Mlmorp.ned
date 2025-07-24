@@ -25,7 +25,8 @@ simple Mlmorp like IManetRouting
         // DNN Model Parameters
         bool useDNNRouting = default(false);                  // Enable DNN-based routing
         int dnnInputSize = default(5);                        // Number of input features
-        int dnnHiddenSize = default(12);                      // Number of neurons in hidden layer
+        int dnnHiddenSize1 = default(12);                     // Number of neurons in first hidden layer
+        int dnnHiddenSize2 = default(6);                      // Number of neurons in second hidden layer
         bool dnnClassification = default(true);               // True for classification, false for regression
         string dnnModelFile = default("");                    // Path to pre-trained model file (optional)
     gates:

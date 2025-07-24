@@ -8,16 +8,11 @@
 
 namespace inet {
 
-SimpleDNNModel::SimpleDNNModel(int inputSize, int hiddenSize, bool isClassification)
-    : inputSize(inputSize), hiddenSize(hiddenSize), outputSize(1), isClassification(isClassification), learningRate(0.01)
+SimpleDNNModel::SimpleDNNModel(int inputSize, int hiddenSize1, int hiddenSize2, bool isClassification)
+    : inputSize(inputSize), hiddenSize1(hiddenSize1), hiddenSize2(hiddenSize2), outputSize(1), isClassification(isClassification), learningRate(0.01)
 {
-    // Initialize random number generator with a seed
     rng.seed(42);
-    
-    // Initialize weights and biases
     initializeWeights();
-    
-    // Initialize feature normalization parameters
     initializeNormalization();
 }
 
@@ -28,34 +23,35 @@ SimpleDNNModel::~SimpleDNNModel()
 
 void SimpleDNNModel::initializeWeights()
 {
-    // Initialize weights from input to hidden layer using Xavier/Glorot initialization
     double inputScale = sqrt(2.0 / inputSize);
     std::normal_distribution<double> dist(0.0, inputScale);
-    
-    weightsHidden.resize(hiddenSize);
-    for (int i = 0; i < hiddenSize; i++) {
-        weightsHidden[i].resize(inputSize);
+    weightsHidden1.resize(hiddenSize1);
+    for (int i = 0; i < hiddenSize1; i++) {
+        weightsHidden1[i].resize(inputSize);
         for (int j = 0; j < inputSize; j++) {
-            weightsHidden[i][j] = dist(rng);
+            weightsHidden1[i][j] = dist(rng);
         }
     }
-    
-    // Initialize bias for hidden layer
-    biasHidden.resize(hiddenSize, 0.0);
-    
-    // Initialize weights from hidden to output layer
-    double hiddenScale = sqrt(2.0 / hiddenSize);
-    std::normal_distribution<double> distHidden(0.0, hiddenScale);
-    
+    biasHidden1.resize(hiddenSize1, 0.0);
+    double hidden1Scale = sqrt(2.0 / hiddenSize1);
+    std::normal_distribution<double> distHidden1(0.0, hidden1Scale);
+    weightsHidden2.resize(hiddenSize2);
+    for (int i = 0; i < hiddenSize2; i++) {
+        weightsHidden2[i].resize(hiddenSize1);
+        for (int j = 0; j < hiddenSize1; j++) {
+            weightsHidden2[i][j] = distHidden1(rng);
+        }
+    }
+    biasHidden2.resize(hiddenSize2, 0.0);
+    double hidden2Scale = sqrt(2.0 / hiddenSize2);
+    std::normal_distribution<double> distHidden2(0.0, hidden2Scale);
     weightsOutput.resize(outputSize);
     for (int i = 0; i < outputSize; i++) {
-        weightsOutput[i].resize(hiddenSize);
-        for (int j = 0; j < hiddenSize; j++) {
-            weightsOutput[i][j] = distHidden(rng);
+        weightsOutput[i].resize(hiddenSize2);
+        for (int j = 0; j < hiddenSize2; j++) {
+            weightsOutput[i][j] = distHidden2(rng);
         }
     }
-    
-    // Initialize bias for output layer
     biasOutput.resize(outputSize, 0.0);
 }
 
@@ -106,28 +102,30 @@ std::vector<double> SimpleDNNModel::normalizeFeatures(const std::vector<double>&
 
 double SimpleDNNModel::forwardPass(const std::vector<double>& input) const
 {
-    // Forward pass through hidden layer
-    std::vector<double> hiddenOutput(hiddenSize);
-    
-    for (int i = 0; i < hiddenSize; i++) {
-        double sum = biasHidden[i];
+    std::vector<double> hiddenOutput1(hiddenSize1);
+    for (int i = 0; i < hiddenSize1; i++) {
+        double sum = biasHidden1[i];
         for (int j = 0; j < inputSize; j++) {
-            sum += weightsHidden[i][j] * input[j];
+            sum += weightsHidden1[i][j] * input[j];
         }
-        hiddenOutput[i] = relu(sum);
+        hiddenOutput1[i] = relu(sum);
     }
-    
-    // Forward pass through output layer
+    std::vector<double> hiddenOutput2(hiddenSize2);
+    for (int i = 0; i < hiddenSize2; i++) {
+        double sum = biasHidden2[i];
+        for (int j = 0; j < hiddenSize1; j++) {
+            sum += weightsHidden2[i][j] * hiddenOutput1[j];
+        }
+        hiddenOutput2[i] = relu(sum);
+    }
     double output = biasOutput[0];
-    for (int j = 0; j < hiddenSize; j++) {
-        output += weightsOutput[0][j] * hiddenOutput[j];
+    for (int j = 0; j < hiddenSize2; j++) {
+        output += weightsOutput[0][j] * hiddenOutput2[j];
     }
-    
-    // Apply activation function based on task type
     if (isClassification) {
         return sigmoid(output);
     } else {
-        return output;  // Identity function for regression
+        return output;
     }
 }
 
@@ -174,13 +172,16 @@ L3Address SimpleDNNModel::selectBestNeighbor(const std::vector<L3Address>& neigh
     return bestNeighbor;
 }
 
-void SimpleDNNModel::setWeights(const std::vector<std::vector<double>>& weightsHidden,
-                               const std::vector<double>& biasHidden,
-                               const std::vector<std::vector<double>>& weightsOutput,
-                               const std::vector<double>& biasOutput)
-{
-    this->weightsHidden = weightsHidden;
-    this->biasHidden = biasHidden;
+void SimpleDNNModel::setWeights(const std::vector<std::vector<double>>& weightsHidden1,
+                   const std::vector<double>& biasHidden1,
+                   const std::vector<std::vector<double>>& weightsHidden2,
+                   const std::vector<double>& biasHidden2,
+                   const std::vector<std::vector<double>>& weightsOutput,
+                   const std::vector<double>& biasOutput) {
+    this->weightsHidden1 = weightsHidden1;
+    this->biasHidden1 = biasHidden1;
+    this->weightsHidden2 = weightsHidden2;
+    this->biasHidden2 = biasHidden2;
     this->weightsOutput = weightsOutput;
     this->biasOutput = biasOutput;
 }
@@ -198,11 +199,9 @@ void SimpleDNNModel::setNormalization(const std::vector<double>& means, const st
     }
 }
 
-std::string SimpleDNNModel::getModelInfo() const
-{
+std::string SimpleDNNModel::getModelInfo() const {
     std::ostringstream oss;
-    oss << "SimpleDNNModel - Architecture: " << inputSize << "->" << hiddenSize << "->" << outputSize;
-    oss << " (Task: " << (isClassification ? "Classification" : "Regression") << ")";
+    oss << "SimpleDNNModel architecture: (" << inputSize << "-" << hiddenSize1 << "-" << hiddenSize2 << "-" << outputSize << ")";
     return oss.str();
 }
 
@@ -212,49 +211,48 @@ bool SimpleDNNModel::saveModel(const std::string& filename) const
     if (!file.is_open()) {
         return false;
     }
-    
-    // Save model architecture
     file << "Architecture:" << std::endl;
-    file << inputSize << " " << hiddenSize << " " << outputSize << " " << isClassification << std::endl;
-    
-    // Save normalization parameters
+    file << inputSize << " " << hiddenSize1 << " " << hiddenSize2 << " " << outputSize << " " << isClassification << std::endl;
     file << "Normalization:" << std::endl;
     for (int i = 0; i < inputSize; i++) {
         file << featureMeans[i] << " " << featureStds[i] << std::endl;
     }
-    
-    // Save hidden layer weights
-    file << "HiddenWeights:" << std::endl;
-    for (int i = 0; i < hiddenSize; i++) {
+    file << "Hidden1Weights:" << std::endl;
+    for (int i = 0; i < hiddenSize1; i++) {
         for (int j = 0; j < inputSize; j++) {
-            file << weightsHidden[i][j] << " ";
+            file << weightsHidden1[i][j] << " ";
         }
         file << std::endl;
     }
-    
-    // Save hidden layer bias
-    file << "HiddenBias:" << std::endl;
-    for (int i = 0; i < hiddenSize; i++) {
-        file << biasHidden[i] << " ";
+    file << "Hidden1Bias:" << std::endl;
+    for (int i = 0; i < hiddenSize1; i++) {
+        file << biasHidden1[i] << " ";
     }
     file << std::endl;
-    
-    // Save output layer weights
+    file << "Hidden2Weights:" << std::endl;
+    for (int i = 0; i < hiddenSize2; i++) {
+        for (int j = 0; j < hiddenSize1; j++) {
+            file << weightsHidden2[i][j] << " ";
+        }
+        file << std::endl;
+    }
+    file << "Hidden2Bias:" << std::endl;
+    for (int i = 0; i < hiddenSize2; i++) {
+        file << biasHidden2[i] << " ";
+    }
+    file << std::endl;
     file << "OutputWeights:" << std::endl;
     for (int i = 0; i < outputSize; i++) {
-        for (int j = 0; j < hiddenSize; j++) {
+        for (int j = 0; j < hiddenSize2; j++) {
             file << weightsOutput[i][j] << " ";
         }
         file << std::endl;
     }
-    
-    // Save output layer bias
     file << "OutputBias:" << std::endl;
     for (int i = 0; i < outputSize; i++) {
         file << biasOutput[i] << " ";
     }
     file << std::endl;
-    
     file.close();
     return true;
 }
@@ -272,13 +270,13 @@ bool SimpleDNNModel::loadModel(const std::string& filename)
     std::getline(file, line);  // "Architecture:"
     std::getline(file, line);
     std::istringstream iss(line);
-    int loadedInputSize, loadedHiddenSize, loadedOutputSize;
+    int loadedInputSize, loadedHiddenSize1, loadedHiddenSize2, loadedOutputSize;
     bool loadedIsClassification;
-    iss >> loadedInputSize >> loadedHiddenSize >> loadedOutputSize >> loadedIsClassification;
+    iss >> loadedInputSize >> loadedHiddenSize1 >> loadedHiddenSize2 >> loadedOutputSize >> loadedIsClassification;
     
     // Verify architecture matches
-    if (loadedInputSize != inputSize || loadedHiddenSize != hiddenSize || 
-        loadedOutputSize != outputSize || loadedIsClassification != isClassification) {
+    if (loadedInputSize != inputSize || loadedHiddenSize1 != hiddenSize1 || 
+        loadedHiddenSize2 != hiddenSize2 || loadedOutputSize != outputSize || loadedIsClassification != isClassification) {
         file.close();
         return false;
     }
@@ -292,21 +290,39 @@ bool SimpleDNNModel::loadModel(const std::string& filename)
     }
     
     // Load hidden layer weights
-    std::getline(file, line);  // "HiddenWeights:"
-    for (int i = 0; i < hiddenSize; i++) {
+    std::getline(file, line);  // "Hidden1Weights:"
+    for (int i = 0; i < hiddenSize1; i++) {
         std::getline(file, line);
         std::istringstream iss(line);
         for (int j = 0; j < inputSize; j++) {
-            iss >> weightsHidden[i][j];
+            iss >> weightsHidden1[i][j];
         }
     }
     
     // Load hidden layer bias
-    std::getline(file, line);  // "HiddenBias:"
+    std::getline(file, line);  // "Hidden1Bias:"
     std::getline(file, line);
-    std::istringstream issBias(line);
-    for (int i = 0; i < hiddenSize; i++) {
-        issBias >> biasHidden[i];
+    std::istringstream issBias1(line);
+    for (int i = 0; i < hiddenSize1; i++) {
+        issBias1 >> biasHidden1[i];
+    }
+    
+    // Load hidden layer weights
+    std::getline(file, line);  // "Hidden2Weights:"
+    for (int i = 0; i < hiddenSize2; i++) {
+        std::getline(file, line);
+        std::istringstream iss(line);
+        for (int j = 0; j < hiddenSize1; j++) {
+            iss >> weightsHidden2[i][j];
+        }
+    }
+    
+    // Load hidden layer bias
+    std::getline(file, line);  // "Hidden2Bias:"
+    std::getline(file, line);
+    std::istringstream issBias2(line);
+    for (int i = 0; i < hiddenSize2; i++) {
+        issBias2 >> biasHidden2[i];
     }
     
     // Load output layer weights
@@ -314,7 +330,7 @@ bool SimpleDNNModel::loadModel(const std::string& filename)
     for (int i = 0; i < outputSize; i++) {
         std::getline(file, line);
         std::istringstream iss(line);
-        for (int j = 0; j < hiddenSize; j++) {
+        for (int j = 0; j < hiddenSize2; j++) {
             iss >> weightsOutput[i][j];
         }
     }

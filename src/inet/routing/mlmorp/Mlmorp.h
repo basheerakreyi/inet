@@ -75,7 +75,7 @@ private:
     simtime_t currentPacketDelay;
 
     
-    // DNN Model for routing decisions
+    // DNN Model for routing decisions (5-12-6-1 architecture)
     SimpleDNNModel* dnnModel;
     
     /**

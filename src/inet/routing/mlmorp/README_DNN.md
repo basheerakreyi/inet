@@ -9,14 +9,15 @@ The DNN extension adds machine learning capabilities to the MLMORP routing proto
 ## Features
 
 ### Neural Network Architecture
-- **Input Layer**: 6 neurons (configurable)
+- **Input Layer**: 5 neurons (configurable)
   - Residual Energy
   - Data Rate
   - Signal Power
   - Node Degree
-  - SNIR (Signal-to-Noise-and-Interference Ratio)
-  - Packet Delay
-- **Hidden Layer**: 12 neurons (configurable)
+  - buffPktNo (Signal-to-Noise-and-Interference Ratio)
+- **First Hidden Layer**: 12 neurons (configurable)
+  - ReLU activation function
+- **Second Hidden Layer**: 6 neurons (configurable)
   - ReLU activation function
 - **Output Layer**: 1 neuron
   - Sigmoid activation (for classification)
@@ -37,8 +38,9 @@ In your NED file or configuration, set the DNN parameters:
 
 ```ned
 *.host[*].routingTable.routingProtocol[*].useDNNRouting = true
-*.host[*].routingTable.routingProtocol[*].dnnInputSize = 6
-*.host[*].routingTable.routingProtocol[*].dnnHiddenSize = 12
+*.host[*].routingTable.routingProtocol[*].dnnInputSize = 5
+*.host[*].routingTable.routingProtocol[*].dnnHiddenSize1 = 12
+*.host[*].routingTable.routingProtocol[*].dnnHiddenSize2 = 6
 *.host[*].routingTable.routingProtocol[*].dnnClassification = true
 ```
 
@@ -59,18 +61,22 @@ The model file should contain:
 Example model file structure:
 ```
 Architecture:
-6 12 1 1
+5 12 6 1 1
 Normalization:
 0.5 0.3
 1e7 5e6
 1e-6 5e-7
 5.0 3.0
 10.0 5.0
-0.01 0.005
-HiddenWeights:
+Hidden1Weights:
 0.1 0.2 0.3 0.4 0.5 0.6
 ...
-HiddenBias:
+Hidden1Bias:
+0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+Hidden2Weights:
+0.1 0.2 0.3 0.4 0.5 0.6
+...
+Hidden2Bias:
 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
 OutputWeights:
 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2
@@ -114,8 +120,9 @@ OutputBias:
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `useDNNRouting` | bool | false | Enable DNN-based routing |
-| `dnnInputSize` | int | 6 | Number of input features |
-| `dnnHiddenSize` | int | 12 | Number of hidden layer neurons |
+| `dnnInputSize` | int | 5 | Number of input features |
+| `dnnHiddenSize1` | int | 12 | Number of first hidden layer neurons |
+| `dnnHiddenSize2` | int | 6 | Number of second hidden layer neurons |
 | `dnnClassification` | bool | true | Use classification (true) or regression (false) |
 | `dnnModelFile` | string | "" | Path to pre-trained model file |
 
@@ -189,14 +196,15 @@ network MlmorpNetwork
     parameters:
         *.host[*].routingTable.routingProtocol[*].typename = "Mlmorp"
         *.host[*].routingTable.routingProtocol[*].useDNNRouting = true
-        *.host[*].routingTable.routingProtocol[*].dnnInputSize = 6
-        *.host[*].routingTable.routingProtocol[*].dnnHiddenSize = 12
+        *.host[*].routingTable.routingProtocol[*].dnnInputSize = 5
+        *.host[*].routingTable.routingProtocol[*].dnnHiddenSize1 = 12
+        *.host[*].routingTable.routingProtocol[*].dnnHiddenSize2 = 6
         *.host[*].routingTable.routingProtocol[*].dnnClassification = true
         *.host[*].routingTable.routingProtocol[*].dnnModelFile = "model_training/trained_model.txt"
 }
 ```
 
-This configuration enables DNN-based routing with a 6-12-1 neural network architecture using classification mode and loading a pre-trained model.
+This configuration enables DNN-based routing with a 5-12-6-1 neural network architecture using classification mode and loading a pre-trained model.
 
 ## File Structure
 

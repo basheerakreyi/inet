@@ -42,7 +42,7 @@ import argparse
 import json
 
 class MLMORPDNNTrainer:
-    def __init__(self, input_size=5, hidden_size=12, learning_rate=0.001):
+    def __init__(self, input_size=5, hidden_size1=12, hidden_size2=6, learning_rate=0.001):
         """
         Initialize the MLMORP DNN Trainer
         
@@ -52,7 +52,8 @@ class MLMORPDNNTrainer:
             learning_rate: Learning rate for training (default: 0.001)
         """
         self.input_size = input_size
-        self.hidden_size = hidden_size
+        self.hidden_size1 = hidden_size1
+        self.hidden_size2 = hidden_size2
         self.learning_rate = learning_rate
         self.scaler = StandardScaler()
         self.model = None
@@ -183,11 +184,9 @@ class MLMORPDNNTrainer:
         print("Building neural network model...")
         
         model = keras.Sequential([
-            layers.Dense(self.hidden_size, activation='relu', 
-                        input_shape=(self.input_size,),
-                        kernel_initializer='glorot_uniform'),
-            layers.Dense(1, activation='sigmoid',
-                        kernel_initializer='glorot_uniform')
+            layers.Dense(self.hidden_size1, activation='relu', input_shape=(self.input_size,), kernel_initializer='glorot_uniform'),
+            layers.Dense(self.hidden_size2, activation='relu', kernel_initializer='glorot_uniform'),
+            layers.Dense(1, activation='sigmoid', kernel_initializer='glorot_uniform')
         ])
         
         model.compile(
@@ -272,15 +271,17 @@ class MLMORPDNNTrainer:
         
         # Get model weights
         weights = self.model.get_weights()
-        hidden_weights = weights[0]  # Input to hidden layer weights
-        hidden_bias = weights[1]     # Hidden layer bias
-        output_weights = weights[2]  # Hidden to output layer weights
-        output_bias = weights[3]     # Output layer bias
+        hidden1_weights = weights[0]  # Input to first hidden layer weights
+        hidden1_bias = weights[1]     # First hidden layer bias
+        hidden2_weights = weights[2]  # First to second hidden layer weights
+        hidden2_bias = weights[3]     # Second hidden layer bias
+        output_weights = weights[4]   # Second hidden to output layer weights
+        output_bias = weights[5]      # Output layer bias
         
         with open(output_file, 'w') as f:
             # Architecture
             f.write("Architecture:\n")
-            f.write(f"{self.input_size} {self.hidden_size} 1 1\n")
+            f.write(f"{self.input_size} {self.hidden_size1} {self.hidden_size2} 1 1\n")
             
             # Normalization parameters
             f.write("Normalization:\n")
@@ -288,22 +289,35 @@ class MLMORPDNNTrainer:
                 f.write(f"{self.feature_means[i]} {self.feature_stds[i]}\n")
             
             # Hidden layer weights
-            f.write("HiddenWeights:\n")
-            for i in range(self.hidden_size):
+            f.write("Hidden1Weights:\n")
+            for i in range(self.hidden_size1):
                 for j in range(self.input_size):
-                    f.write(f"{hidden_weights[j, i]} ")
+                    f.write(f"{hidden1_weights[j, i]} ")
                 f.write("\n")
             
             # Hidden layer bias
-            f.write("HiddenBias:\n")
-            for i in range(self.hidden_size):
-                f.write(f"{hidden_bias[i]} ")
+            f.write("Hidden1Bias:\n")
+            for i in range(self.hidden_size1):
+                f.write(f"{hidden1_bias[i]} ")
+            f.write("\n")
+            
+            # Hidden layer weights
+            f.write("Hidden2Weights:\n")
+            for i in range(self.hidden_size2):
+                for j in range(self.hidden_size1):
+                    f.write(f"{hidden2_weights[j, i]} ")
+                f.write("\n")
+            
+            # Hidden layer bias
+            f.write("Hidden2Bias:\n")
+            for i in range(self.hidden_size2):
+                f.write(f"{hidden2_bias[i]} ")
             f.write("\n")
             
             # Output layer weights
             f.write("OutputWeights:\n")
             for i in range(1):  # Only 1 output neuron
-                for j in range(self.hidden_size):
+                for j in range(self.hidden_size2):
                     f.write(f"{output_weights[j, i]} ")
                 f.write("\n")
             
@@ -316,11 +330,13 @@ class MLMORPDNNTrainer:
         # Also save as JSON for easier inspection
         json_file = output_file.replace('.txt', '.json')
         model_info = {
-            'architecture': [self.input_size, self.hidden_size, 1],
+            'architecture': [self.input_size, self.hidden_size1, self.hidden_size2, 1],
             'feature_means': self.feature_means.tolist(),
             'feature_stds': self.feature_stds.tolist(),
-            'hidden_weights': hidden_weights.tolist(),
-            'hidden_bias': hidden_bias.tolist(),
+            'hidden1_weights': hidden1_weights.tolist(),
+            'hidden1_bias': hidden1_bias.tolist(),
+            'hidden2_weights': hidden2_weights.tolist(),
+            'hidden2_bias': hidden2_bias.tolist(),
             'output_weights': output_weights.tolist(),
             'output_bias': output_bias.tolist()
         }
@@ -374,8 +390,10 @@ def main():
                        help='Output model file (default: trained_model.txt)')
     parser.add_argument('--input-size', type=int, default=5,
                        help='Number of input features (default: 5)')
-    parser.add_argument('--hidden-size', type=int, default=12,
-                       help='Number of hidden neurons (default: 12)')
+    parser.add_argument('--hidden-size1', type=int, default=12,
+                       help='Number of first hidden neurons (default: 12)')
+    parser.add_argument('--hidden-size2', type=int, default=6,
+                       help='Number of second hidden neurons (default: 6)')
     parser.add_argument('--epochs', type=int, default=100,
                        help='Number of training epochs (default: 100)')
     parser.add_argument('--batch-size', type=int, default=32,
@@ -396,7 +414,8 @@ def main():
     # Create trainer
     trainer = MLMORPDNNTrainer(
         input_size=args.input_size,
-        hidden_size=args.hidden_size,
+        hidden_size1=args.hidden_size1,
+        hidden_size2=args.hidden_size2,
         learning_rate=args.learning_rate
     )
     

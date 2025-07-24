@@ -36,14 +36,17 @@ class INET_API SimpleDNNModel
 private:
     // Network architecture parameters
     int inputSize;           // Number of input features
-    int hiddenSize;          // Number of neurons in hidden layer
+    int hiddenSize1;         // Number of neurons in first hidden layer
+    int hiddenSize2;         // Number of neurons in second hidden layer
     int outputSize;          // Number of output neurons (1 for binary classification)
     
     // Weight matrices and bias vectors
-    std::vector<std::vector<double>> weightsHidden;    // Weights from input to hidden layer
-    std::vector<double> biasHidden;                    // Bias for hidden layer
-    std::vector<std::vector<double>> weightsOutput;    // Weights from hidden to output layer
-    std::vector<double> biasOutput;                    // Bias for output layer
+    std::vector<std::vector<double>> weightsHidden1;    // Weights from input to first hidden layer
+    std::vector<double> biasHidden1;                    // Bias for first hidden layer
+    std::vector<std::vector<double>> weightsHidden2;    // Weights from first to second hidden layer
+    std::vector<double> biasHidden2;                    // Bias for second hidden layer
+    std::vector<std::vector<double>> weightsOutput;     // Weights from second hidden to output layer
+    std::vector<double> biasOutput;                     // Bias for output layer
     
     // Feature normalization parameters
     std::vector<double> featureMeans;                  // Mean values for feature normalization
@@ -101,7 +104,7 @@ public:
      * @param hiddenSize Number of neurons in hidden layer
      * @param isClassification True for classification, false for regression
      */
-    SimpleDNNModel(int inputSize = 5, int hiddenSize = 12, bool isClassification = true);
+    SimpleDNNModel(int inputSize = 5, int hiddenSize1 = 12, int hiddenSize2 = 6, bool isClassification = true);
     
     /**
      * Destructor
@@ -143,8 +146,10 @@ public:
      * @param weightsOutput Weights from hidden to output layer
      * @param biasOutput Bias for output layer
      */
-    void setWeights(const std::vector<std::vector<double>>& weightsHidden,
-                   const std::vector<double>& biasHidden,
+    void setWeights(const std::vector<std::vector<double>>& weightsHidden1,
+                   const std::vector<double>& biasHidden1,
+                   const std::vector<std::vector<double>>& weightsHidden2,
+                   const std::vector<double>& biasHidden2,
                    const std::vector<std::vector<double>>& weightsOutput,
                    const std::vector<double>& biasOutput);
     

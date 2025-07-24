@@ -99,8 +99,9 @@ The script automatically generates binary labels (0/1) based on:
 ## Model Architecture
 
 The trained model has the following architecture:
-- **Input Layer**: 6 neurons (features)
-- **Hidden Layer**: 12 neurons with ReLU activation
+- **Input Layer**: 5 neurons (features)
+- **First Hidden Layer**: 12 neurons with ReLU activation
+- **Second Hidden Layer**: 6 neurons with ReLU activation
 - **Output Layer**: 1 neuron with Sigmoid activation
 
 ### Training Process
@@ -117,23 +118,25 @@ The trained model has the following architecture:
 Text file in the format expected by the C++ SimpleDNNModel:
 ```
 Architecture:
-6 12 1 1
+5 12 6 1 1
 Normalization:
 0.5 0.3
 1e7 5e6
 1e-6 5e-7
 5.0 3.0
 10.0 5.0
-0.01 0.005
-HiddenWeights:
-0.1 0.2 0.3 0.4 0.5 0.6
+Hidden1Weights:
 ...
-HiddenBias:
-0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+Hidden1Bias:
+...
+Hidden2Weights:
+...
+Hidden2Bias:
+...
 OutputWeights:
-0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2
+...
 OutputBias:
-0.0
+...
 ```
 
 ### 2. Model JSON (`trained_model.json`)
