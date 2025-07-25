@@ -171,37 +171,54 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
             next = recBeacon->getNextAddress();
             msgSequenceNumber = recBeacon->getSequenceNumber();
 
+            int nodeDegree = recBeacon->getNodeDegree();
+            double residualEnergy = recBeacon->getResidualEnergy();
+            double dataRate = recBeacon->getDataRate();
+            
             // Extract actual signal power from packet
             double signalPower = -1;  // Default value
             if (check_and_cast<Packet*>(msg)->findTag<SignalPowerInd>()!= nullptr) {
                 signalPower = check_and_cast<Packet*>(msg)->getTag<SignalPowerInd>()->getPower().get();
             }
 
-            double buffPktNo = getCurrentBufferPacketNum();  // Default value
+            double buffPktNo = recBeacon->getBuffPktNo();  // Default value
 
             // Update neighbor table for each received beacon
             int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
-            neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), recBeacon->getNodeDegree(),
-                                         recBeacon->getResidualEnergy(), signalPower,
-                                         buffPktNo);
+            neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), nodeDegree, residualEnergy, signalPower, buffPktNo);                                                               
             neighborTable.removeOldNeighbors(simTime() - neighborLifetime); // To remove the old neighbor that lost the connection
 
-            // Check if DNN-based routing is enabled
             bool useDNN = par("useDNNRouting").boolValue();
+            bool useDNNforCost = par("useDNNforRoutingCost").boolValue();
+            // Check if DNN-based routing is enabled
             if (useDNN) {
 
-                // Use DNN model to calculate routing cost (Can be implemented)
+                // Use DNN model to find the next hope without using the routing table
 
                 // Clean up and exit
                 delete packet;
                 delete msg;
             } else {
-                // Use traditional cost calculation
-                hopCost = recBeacon->getCost() + 1;
-                energyCost = recBeacon->getCost() + (1 - recBeacon->getResidualEnergy()/energyStorage->getNominalEnergyCapacity().get());
-                bandwidthCost = recBeacon->getCost() + 56000000/recBeacon->getDataRate();
-                cost = alpha*hopCost + beta*energyCost + gamma*bandwidthCost;
+                if (useDNNforCost) {
+                    // Use DNN model to calculate routing cost
 
+                    // Get DNN prediction as routing score (higher is better)
+                    double dnnScore = dnnModel->predict(residualEnergy, dataRate, signalPower, nodeDegree, buffPktNo);
+
+                    // Convert DNN score to cost (lower is better for routing)
+                    cost = recBeacon->getCost() + (1.0 - dnnScore);
+
+                    EV_INFO << "DNN-based routing: score=" << dnnScore << ", cost=" << cost << endl;
+
+                } else {
+                    // Use traditional cost calculation
+                    hopCost = recBeacon->getCost() + 1;
+                    energyCost = recBeacon->getCost() + (1 - residualEnergy/energyStorage->getNominalEnergyCapacity().get());
+                    bandwidthCost = recBeacon->getCost() + 56000000/dataRate;
+                    cost = alpha*hopCost + beta*energyCost + gamma*bandwidthCost;
+                    EV_INFO << "Traditional Cost calculation: " << cost << endl;
+                }
+                
                 Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
 
                 if (src == source) {
@@ -251,7 +268,7 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
                     recBeacon->setDataRate(interface80211ptr->getDatarate());
 
                     recBeacon->setSignalPower(signalPower);  // Default signal power in dBm
-                    recBeacon->setBuffPktNo(buffPktNo);      // Default buffPktNo
+                    recBeacon->setBuffPktNo(getCurrentBufferPacketNum());      // Default buffPktNo
 
                     packet->insertAtBack(recBeacon);
                     send(packet, "ipOut");
@@ -350,13 +367,6 @@ void Mlmorp::purge()
 
 INetfilter::IHook::Result Mlmorp::routeDatagram(Packet *datagram)
 {
-    // Only perform ML-based routing if enabled
-    bool useDNN = par("useDNNRouting").boolValue();
-    if (!useDNN) {
-        // If ML-based routing is not enabled, fall back to default behavior (could be legacy/routing table)
-        return ACCEPT;
-    }
-
     const auto& networkHeader = getNetworkProtocolHeader(datagram);
     const L3Address& source = networkHeader->getSourceAddress();
     const L3Address& destination = networkHeader->getDestinationAddress();
@@ -432,15 +442,24 @@ INetfilter::IHook::Result Mlmorp::datagramPreRoutingHook(Packet *datagram)
     }
     // ------ End of Data Collection ----- //
 
-    if ((networkHeader->getProtocol() == &Protocol::udp)) {
-        const L3Address& destination = networkHeader->getDestinationAddress();
+    bool useDNN = par("useDNNRouting").boolValue();
+    if (useDNN) {
+        // If ML-based routing is enabled, use DNN to select the next hop        
+        if ((networkHeader->getProtocol() == &Protocol::udp)) {
+            // Only apply to UDP packets
+            // Extract destination address from the network header
+            const L3Address& destination = networkHeader->getDestinationAddress();            
+            if (destination.isMulticast() || destination.isBroadcast() || rt->isLocalAddress(destination))
+                return ACCEPT;
+            else
+                return routeDatagram(datagram);
+        }
 
-        // Only apply to UDP packets
-        if (destination.isMulticast() || destination.isBroadcast() || rt->isLocalAddress(destination))
-            return ACCEPT;
-        else
-            return routeDatagram(datagram);
+    } else {
+        // If ML-based routing is not enabled, fall back to default behavior (could be legacy/routing table)
+        return ACCEPT;
     }
+
 
     // Accept the packet for forwarding
     return ACCEPT;
@@ -451,18 +470,26 @@ INetfilter::IHook::Result Mlmorp::datagramLocalOutHook(Packet *datagram)
     Enter_Method("datagramLocalOutHook");
 
     // Extract destination address from the network header
-    const auto &networkHeader = getNetworkProtocolHeader(datagram);
-    if ((networkHeader->getProtocol() == &Protocol::udp)) {
-        const L3Address& destination = networkHeader->getDestinationAddress();
+    const auto& networkHeader = getNetworkProtocolHeader(datagram);
 
-        // Only apply to UDP packets
-        if (destination.isMulticast() || destination.isBroadcast() || rt->isLocalAddress(destination))
-            return ACCEPT;
-        else
-            return routeDatagram(datagram);
+    bool useDNN = par("useDNNRouting").boolValue();
+    if (useDNN) {
+        // If ML-based routing is enabled, use DNN to select the next hop        
+        if ((networkHeader->getProtocol() == &Protocol::udp)) {
+            // Only apply to UDP packets
+            // Extract destination address from the network header
+            const L3Address& destination = networkHeader->getDestinationAddress();            
+            if (destination.isMulticast() || destination.isBroadcast() || rt->isLocalAddress(destination))
+                return ACCEPT;
+            else
+                return routeDatagram(datagram);
+        }
+
+    } else {
+        // If ML-based routing is not enabled, fall back to default behavior (could be legacy/routing table)
+        return ACCEPT;
     }
 
-    // Accept the packet for forwarding
     return ACCEPT;
 }
 

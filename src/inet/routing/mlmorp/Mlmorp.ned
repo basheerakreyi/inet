@@ -24,6 +24,7 @@ simple Mlmorp like IManetRouting
         
         // DNN Model Parameters
         bool useDNNRouting = default(false);                  // Enable DNN-based routing
+        bool useDNNforRoutingCost = default(false);           // Enable DNN-based to calculate routing cost
         int dnnInputSize = default(5);                        // Number of input features
         int dnnHiddenSize1 = default(12);                     // Number of neurons in first hidden layer
         int dnnHiddenSize2 = default(6);                      // Number of neurons in second hidden layer

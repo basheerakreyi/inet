@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.py": "python",
+        "random": "cpp",
+        "xlocale": "cpp"
+    }
+}
