@@ -1,8 +1,8 @@
 
 // Author: Basheer Al-Qassab
 
-#ifndef __INET_MLMORPNEIGHBORTABLE_H
-#define __INET_MLMORPNEIGHBORTABLE_H
+#ifndef __INET_RLMORPNEIGHBORTABLE_H
+#define __INET_RLMORPNEIGHBORTABLE_H
 
 #include <map>
 #include <vector>
@@ -15,7 +15,7 @@ namespace inet {
 /**
  * This class provides a mapping between node addresses and neighbors.
  */
-class INET_API MlmorpNeighborTable {
+class INET_API RlmorpNeighborTable {
 private:
     struct Neighbor {
         int networkInterfaceId = -1;
@@ -28,27 +28,26 @@ private:
 
         double signalPower = -1;  // Signal power in dBm
         double buffPktNo = -1;         // Signal-to-Noise-plus-Interference Ratio in dB
-        double dataRate = -1;          // Data rate of the neighbor node
 
         // constructor and parameterized constructor for the struct
         Neighbor() {}
-        Neighbor(int networkInterfaceId, const Coord &position, int nodeDegree, double residualEnergy, double signalPower, double buffPktNo, double dataRate, simtime_t lastUpdate) :
+        Neighbor(int networkInterfaceId, const Coord &position, int nodeDegree, double residualEnergy, double signalPower, double buffPktNo, simtime_t lastUpdate) :
                 networkInterfaceId(networkInterfaceId), position(position), nodeDegree(nodeDegree),
-                residualEnergy(residualEnergy), signalPower(signalPower), buffPktNo(buffPktNo), dataRate(dataRate), lastUpdate(lastUpdate) {}
+                residualEnergy(residualEnergy), signalPower(signalPower), buffPktNo(buffPktNo), lastUpdate(lastUpdate) {}
     };
 
     // a container that stores key-value pairs, key is address and value is the neighbor struct
     std::map<L3Address, Neighbor> addressToNeighborMap;
 
 public:
-    MlmorpNeighborTable() {}
+    RlmorpNeighborTable() {}
 
     std::vector<L3Address> getAddresses() const;
 
     bool hasNeighbor(const L3Address &address) const;
     int getNetworkInterfaceId(const L3Address &address) const;
     Coord getPosition(const L3Address &address) const;
-    void updateNeighbor(const L3Address &address, int networkInterfaceId, const Coord &position, int nodeDegree, double residualEnergy, double signalPower, double buffPktNo, double dataRate);
+    void updateNeighbor(const L3Address &address, int networkInterfaceId, const Coord &position, int nodeDegree, double residualEnergy, double signalPower, double buffPktNo);
 
     simtime_t getOldestNeighbor() const;
     void removeNeighbor(const L3Address &address);
@@ -61,9 +60,8 @@ public:
 
     double getSignalPower(const L3Address &address) const;
     double getBuffPktNo(const L3Address &address) const;
-    double getDataRate(const L3Address &address) const;
 
-    friend std::ostream& operator<<(std::ostream &o, const MlmorpNeighborTable &t);
+    friend std::ostream& operator<<(std::ostream &o, const RlmorpNeighborTable &t);
 };
 
 } // namespace inet

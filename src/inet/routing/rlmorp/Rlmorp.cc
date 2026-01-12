@@ -1,8 +1,6 @@
 // Author: Basheer Al-Qassab
 
-#include "inet/routing/mlmorp/Mlmorp.h"
-
-#include <limits>
+#include "inet/routing/rlmorp/Rlmorp.h"
 
 #include "inet/common/IProtocolRegistrationListener.h"
 #include "inet/common/ModuleAccess.h"
@@ -17,27 +15,26 @@
 
 namespace inet {
 
-Define_Module(Mlmorp);
+Define_Module(Rlmorp);
 
-Mlmorp::Mlmorp()
+Rlmorp::Rlmorp()
 {
 
 }
 
-Mlmorp::~Mlmorp()
+Rlmorp::~Rlmorp()
 {
     stop();
 
     // Dispose of dynamically allocated the objects
     delete event;
     delete purgeTimer;
-    delete dnnModel;
     delete dqnModel;
     delete packetTracker;
     delete rlUpdateTimer;
 }
 
-void Mlmorp::initialize(int stage)
+void Rlmorp::initialize(int stage)
 {
     RoutingProtocolBase::initialize(stage);
 
@@ -47,7 +44,7 @@ void Mlmorp::initialize(int stage)
         purgeTimer = new cMessage("purge");
         rlUpdateTimer = new cMessage("rlUpdate");
 
-        // Getting MLMORP parameters
+        // Getting RLMORP parameters
         routeLifetime = par("routeLifetime").doubleValue();
         neighborLifetime = par("neighborLifetime").doubleValue();
         beaconInterval = par("beaconInterval");
@@ -56,43 +53,23 @@ void Mlmorp::initialize(int stage)
         beta = par("beta").doubleValue();
         gamma = par("gamma").doubleValue();
 
-        // Initialize DNN Model
-        int inputSize = par("dnnInputSize").intValue();
-        int hiddenSize1 = par("dnnHiddenSize1").intValue();
-        int hiddenSize2 = par("dnnHiddenSize2").intValue();
-        bool isClassification = par("dnnClassification").boolValue();
-        dnnModel = new SimpleDNNModel(inputSize, hiddenSize1, hiddenSize2, isClassification);
-        
-        // Load pre-trained model if specified
-        std::string modelFile = par("dnnModelFile").stringValue();
-        if (!modelFile.empty()) {
-            if (dnnModel->loadModel(modelFile)) {
-                EV_INFO << "DNN model loaded successfully from " << modelFile << endl;
-            } else {
-                EV_WARN << "Failed to load DNN model from " << modelFile << ", using random initialization" << endl;
-            }
-        } else {
-            EV_INFO << "DNN model initialized with random weights" << endl;
-        }
-        
-        EV_INFO << "DNN Model Info: " << dnnModel->getModelInfo() << endl;
-        
         // Initialize Reinforcement Learning components
         useOnlineRL = par("useOnlineRL").boolValue();
         rlUpdateInterval = par("rlUpdateInterval").intValue();
         rlPacketCounter = 0;
         
         if (useOnlineRL) {
-            // Initialize DQN model (single-output architecture)
-            int dqnStateSize = par("dqnStateSize").intValue();  // Should be 5 for neighbor feature vector
+            // Initialize DQN model
+            int dqnStateSize = par("dqnStateSize").intValue();
             int dqnHiddenSize1 = par("dqnHiddenSize1").intValue();
             int dqnHiddenSize2 = par("dqnHiddenSize2").intValue();
+            int dqnMaxActions = par("dqnMaxActions").intValue();
             double dqnLearningRate = par("dqnLearningRate").doubleValue();
             double dqnEpsilon = par("dqnEpsilon").doubleValue();
             double dqnGamma = par("dqnGamma").doubleValue();
             
             dqnModel = new DQNModel(dqnStateSize, dqnHiddenSize1, dqnHiddenSize2, 
-                                   dqnLearningRate, dqnEpsilon, dqnGamma);
+                                   dqnMaxActions, dqnLearningRate, dqnEpsilon, dqnGamma);
             
             // Initialize packet tracker
             simtime_t trackingTimeout = par("packetTrackingTimeout");
@@ -147,7 +124,7 @@ void Mlmorp::initialize(int stage)
 
 }
 
-void Mlmorp::start()
+void Rlmorp::start()
 {
     // Search for the 80211 interfaces
     int num_80211 = 0;
@@ -167,7 +144,7 @@ void Mlmorp::start()
     if (num_80211 == 1)
         interface80211ptr = i_face;
     else
-        throw cRuntimeError("MLMORP has found %i 80211 interfaces", num_80211);
+        throw cRuntimeError("RLMORP has found %i 80211 interfaces", num_80211);
 
     // Purge the routes related to wireless interface
     if (par("manetPurgeRoutingTables").boolValue()) {
@@ -188,14 +165,14 @@ void Mlmorp::start()
     }
 }
 
-void Mlmorp::stop()
+void Rlmorp::stop()
 {
     cancelEvent(event);
     cancelEvent(purgeTimer);
     cancelEvent(rlUpdateTimer);
 }
 
-void Mlmorp::handleMessageWhenUp(cMessage *msg)
+void Rlmorp::handleMessageWhenUp(cMessage *msg)
 {
     if (msg->isSelfMessage()) {
         handleSelfMessage(msg);
@@ -205,21 +182,21 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
         // Check if this is an ACK packet - use peekData with nullptr flag to avoid conversion errors
         auto receivedPacket = check_and_cast<Packet*>(msg);
         const Ptr<const Chunk> chunk = receivedPacket->peekData();
-        auto ackData = dynamicPtrCast<const MlmorpAck>(chunk);
+        auto ackData = dynamicPtrCast<const RlmorpAck>(chunk);
         if (ackData != nullptr && msg->arrivedOn("ipIn")) {
             // Handle ACK packet
             int treeId = ackData->getTreeId();
             Ipv4Address originalSource = ackData->getOriginalSource();
             Ipv4Address originalDestination = ackData->getOriginalDestination();
             
-            EV_INFO << "MLMORP: Received ACK for packet " << treeId 
+            EV_INFO << "RLMORP: Received ACK for packet " << treeId 
                     << " (source=" << originalSource << ", dest=" << originalDestination << ")" << endl;
             
             // Check if we're the original source
             Ipv4Address currentNode = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
             if (originalSource == currentNode) {
                 // We're the source - just log and drop
-                EV_INFO << "MLMORP: ACK reached original source, dropping" << endl;
+                EV_INFO << "RLMORP: ACK reached original source, dropping" << endl;
                 delete msg;
                 return;
             }
@@ -229,16 +206,16 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
                 double energyNow = energyStorage->getResidualEnergyCapacity().get();
                 if (packetTracker->isTracking(treeId)) {
                     packetTracker->confirmDelivery(treeId, ackData->getDeliveryTime(), energyNow);
-                    EV_INFO << "MLMORP: Confirmed delivery of packet " << treeId << " via ACK" << endl;
+                    EV_INFO << "RLMORP: Confirmed delivery of packet " << treeId << " via ACK" << endl;
                 } else {
-                    EV_DETAIL << "MLMORP: ACK received for packet " << treeId 
+                    EV_DETAIL << "RLMORP: ACK received for packet " << treeId 
                               << " but not tracking (may have timed out)" << endl;
                 }
             }
             
-            // Forward ACK back to original source using DQN/DNN policy (same as data packets)
+            // Forward ACK back to original source using RL policy
             // Create a new packet with routing information
-            auto forwardPacket = new Packet("MLMORP-ACK");
+            auto forwardPacket = new Packet("RLMORP-ACK");
             auto forwardAckData = ackData->dupShared();
             forwardPacket->insertAtBack(forwardAckData);
             
@@ -249,23 +226,26 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
             forwardPacket->addTag<PacketProtocolTag>()->setProtocol(&Protocol::manet);
             forwardPacket->addTag<DispatchProtocolReq>()->setProtocol(&Protocol::ipv4);
             
-            // Use DQN/DNN policy to find next hop (same as data packets)
+            // Use RL policy to find next hop
             L3Address nextHop;
             if (useOnlineRL && dqnModel != nullptr) {
                 // Use reinforcement learning for routing ACK
                 nextHop = selectBestNeighborRL(L3Address(originalSource), L3Address(currentNode), treeId);
             } else {
-                // Use DNN-based logic to select next hop for ACK
-                nextHop = selectBestNeighborDNN(L3Address(originalSource), L3Address(currentNode));
+                // Fallback: use routing table or drop
+                EV_WARN << "RLMORP: No RL model available for ACK routing, dropping" << endl;
+                delete forwardPacket;
+                delete msg;
+                return;
             }
             
             if (!nextHop.isUnspecified()) {
                 forwardPacket->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHop);
                 send(forwardPacket, "ipOut");
-                EV_INFO << "MLMORP: Forwarded ACK for packet " << treeId << " to " << originalSource 
-                        << " via nextHop " << nextHop << " using DQN/DNN policy" << endl;
+                EV_INFO << "RLMORP: Forwarded ACK for packet " << treeId << " to " << originalSource 
+                        << " via nextHop " << nextHop << " using RL policy" << endl;
             } else {
-                EV_WARN << "MLMORP: No next hop found for ACK to " << originalSource << ", dropping" << endl;
+                EV_WARN << "RLMORP: No next hop found for ACK to " << originalSource << ", dropping" << endl;
                 delete forwardPacket;
             }
             delete msg;
@@ -281,21 +261,18 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
         packet->addTag<PacketProtocolTag>()->setProtocol(&Protocol::manet);
         packet->addTag<DispatchProtocolReq>()->setProtocol(&Protocol::ipv4);
 
-        // When MLMORP module receives MlmorpBeacon from other host
+        // When RLMORP module receives RlmorpBeacon from other host
         // it adds/replaces the information in routing table for the one contained in the message
-        // but only if it's useful/up-to-date. If not the MLMORP module ignores the message.
-        auto recBeacon = staticPtrCast<MlmorpBeacon>(check_and_cast<Packet*>(msg)->peekData<MlmorpBeacon>()->dupShared());
+        // but only if it's useful/up-to-date. If not the RLMORP module ignores the message.
+        auto recBeacon = staticPtrCast<RlmorpBeacon>(check_and_cast<Packet*>(msg)->peekData<RlmorpBeacon>()->dupShared());
         if (msg->arrivedOn("ipIn")) {
             ASSERT(recBeacon);
 
-            // reads MLMORP beacon message fields
+            // reads RLMORP beacon message fields
             Ipv4Address src;
             Ipv4Address next;
             unsigned int msgSequenceNumber;
             float cost;
-            double hopCost;
-            double energyCost;
-            double bandwidthCost;
 
             src = recBeacon->getSrcAddress();
             next = recBeacon->getNextAddress();
@@ -315,120 +292,94 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
 
             // Update neighbor table for each received beacon
             int interfaceID = check_and_cast<Packet*>(msg)->getTag<InterfaceInd>()->getInterfaceId();
-            neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), nodeDegree, residualEnergy, signalPower, buffPktNo, dataRate);                                                               
+            neighborTable.updateNeighbor(next, interfaceID, recBeacon->getNextPosition(), nodeDegree, residualEnergy, signalPower, buffPktNo);                                                               
             neighborTable.removeOldNeighbors(simTime() - neighborLifetime); // To remove the old neighbor that lost the connection
 
-            bool useDNN = par("useDNNRouting").boolValue();
-            bool useDNNforCost = par("useDNNforRoutingCost").boolValue();
-
-            // Check if DNN-based routing is enabled
-            if (useDNN || useOnlineRL) {
-
-                // Use DNN model to find the next hope without using the routing table
-
-                // Clean up and exit
-                delete packet;
-                delete msg;
-            } else {
-                if (useDNNforCost) {
-                    // Use DNN model to calculate routing cost
-
-                    // Get DNN prediction as routing score (higher is better)
-                    double dnnScore = dnnModel->predict(residualEnergy, dataRate, signalPower, nodeDegree, buffPktNo);
-
-                    // Convert DNN score to cost (lower is better for routing)
-                    cost = recBeacon->getCost() + (1.0 - dnnScore);
-
-                    EV_INFO << "DNN-based routing: score=" << dnnScore << ", cost=" << cost << endl;
-
-                } else {
-                    // Use traditional cost calculation
-                    hopCost = recBeacon->getCost() + 1;
-                    energyCost = recBeacon->getCost() + (1 - residualEnergy/energyStorage->getNominalEnergyCapacity().get());
-                    bandwidthCost = recBeacon->getCost() + 56000000/dataRate;
-                    cost = alpha*hopCost + beta*energyCost + gamma*bandwidthCost;
-                    EV_INFO << "Traditional Cost calculation: " << cost << endl;
-                }
+            // Always calculate traditional cost for dataset collection
+            // This cost is computed regardless of whether RL is enabled
+            cost = calculateTraditionalCost(recBeacon->getCost(), residualEnergy, dataRate);
+            EV_INFO << "RLMORP: Traditional Cost calculation: " << cost << endl;
                 
-                Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
+            Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
 
-                if (src == source) {
-                    EV_INFO << "Beacon message is dropped because the message is returned to the original node.\n";
-                    delete packet;
-                    delete msg;
-                    return;
-                }
-
-                Ipv4Route *_input_routing = rt->findBestMatchingRoute(src);
-                MlmorpRouteData *input_routing = dynamic_cast<MlmorpRouteData*>(_input_routing);
-
-                // Tests if the MLMORP beacon message that arrived is useful
-                if (_input_routing == nullptr
-                            || (_input_routing != nullptr && _input_routing->getNetmask() != Ipv4Address::ALLONES_ADDRESS)
-                            || (input_routing != nullptr && (msgSequenceNumber > input_routing->getSequenceNumber() || (msgSequenceNumber == input_routing->getSequenceNumber() && cost < input_routing->getRouteCost()))))
-                {
-                    // remove old entry
-                    if (input_routing != nullptr){
-                        rt->deleteRoute(input_routing);
-                        //    std::cout << "host " << host->getFullName() << " deleted a route at " << simTime() << endl;
-                    }
-
-                    // adds new information to routing table according to information in beacon message
-                    {
-                        Ipv4Address netmask = Ipv4Address::ALLONES_ADDRESS;
-                        MlmorpRouteData *e = new MlmorpRouteData();
-                        e->setDestination(src);
-                        e->setNetmask(netmask);
-                        e->setGateway(next);
-                        e->setInterface(interface80211ptr);
-                        e->setSourceType(IRoute::MANET);
-                        //e->setMetric(numHops);
-                        e->setRouteCost(cost);
-                        e->setSequenceNumber(msgSequenceNumber);
-                        e->setExpirTime(simTime() + routeLifetime);
-                        rt->addRoute(e);
-                        reschedulePurgeTimer();
-                    }
-
-                    // Modify the content of the received beacon and send it to other neighbors
-                    recBeacon->setCost(cost);
-                    recBeacon->setNextAddress(source);
-                    recBeacon->setNextPosition(mobility->getCurrentPosition());
-                    recBeacon->setNodeDegree(neighborTable.getAddresses().size());
-                    recBeacon->setResidualEnergy(energyStorage->getResidualEnergyCapacity().get());
-                    recBeacon->setDataRate(interface80211ptr->getDatarate());
-
-                    recBeacon->setSignalPower(signalPower);  // Default signal power in dBm
-                    recBeacon->setBuffPktNo(getCurrentBufferPacketNum());      // Default buffPktNo
-
-                    packet->insertAtBack(recBeacon);
-                    send(packet, "ipOut");
-                    packet = nullptr;
-                }
-
-                // Clean up
+            if (src == source) {
+                EV_INFO << "Beacon message is dropped because the message is returned to the original node.\n";
                 delete packet;
                 delete msg;
+                return;
             }
+
+            Ipv4Route *_input_routing = rt->findBestMatchingRoute(src);
+            RlmorpRouteData *input_routing = dynamic_cast<RlmorpRouteData*>(_input_routing);
+
+            // Tests if the RLMORP beacon message that arrived is useful
+            if (_input_routing == nullptr
+                        || (_input_routing != nullptr && _input_routing->getNetmask() != Ipv4Address::ALLONES_ADDRESS)
+                        || (input_routing != nullptr && (msgSequenceNumber > input_routing->getSequenceNumber() || (msgSequenceNumber == input_routing->getSequenceNumber() && cost < input_routing->getRouteCost()))))
+            {
+                // remove old entry
+                if (input_routing != nullptr){
+                    rt->deleteRoute(input_routing);
+                }
+
+                // adds new information to routing table according to information in beacon message
+                {
+                    Ipv4Address netmask = Ipv4Address::ALLONES_ADDRESS;
+                    RlmorpRouteData *e = new RlmorpRouteData();
+                    e->setDestination(src);
+                    e->setNetmask(netmask);
+                    e->setGateway(next);
+                    e->setInterface(interface80211ptr);
+                    e->setSourceType(IRoute::MANET);
+                    e->setRouteCost(cost);
+                    e->setSequenceNumber(msgSequenceNumber);
+                    e->setExpirTime(simTime() + routeLifetime);
+                    rt->addRoute(e);
+                    reschedulePurgeTimer();
+                }
+
+                // Modify the content of the received beacon and send it to other neighbors
+                recBeacon->setCost(cost);
+                recBeacon->setNextAddress(source);
+                recBeacon->setNextPosition(mobility->getCurrentPosition());
+                recBeacon->setNodeDegree(neighborTable.getAddresses().size());
+                recBeacon->setResidualEnergy(energyStorage->getResidualEnergyCapacity().get());
+                recBeacon->setDataRate(interface80211ptr->getDatarate());
+
+                recBeacon->setSignalPower(signalPower);  // Default signal power in dBm
+                recBeacon->setBuffPktNo(getCurrentBufferPacketNum());      // Default buffPktNo
+
+                packet->insertAtBack(recBeacon);
+                send(packet, "ipOut");
+                packet = nullptr;
+            }
+
+            // Clean up
+            delete packet;
+            delete msg;
         } else
             throw cRuntimeError("Message arrived on unknown gate %s", msg->getArrivalGate()->getName());
-    } else
-        throw cRuntimeError("Message not supported %s", msg->getName());
+    } else {
+        // throw cRuntimeError("Message not supported %s", msg->getName());
+        // Accept and pass through non-MANET packets (ICMP, etc.)
+        // These are normal network messages that shouldn't cause errors
+        delete msg;
+        return;
+    }
 }
 
-void Mlmorp::handleSelfMessage(cMessage *msg)
+void Rlmorp::handleSelfMessage(cMessage *msg)
 {
-    // When MLMORP module receives self-message (scheduled event)
+    // When RLMORP module receives self-message (scheduled event)
     // it means that it's time for beacon message broadcast event
     if (msg == event) {
 
         // Purge the routing table (this to remove the expired routes)
-        // rt->purge();
         purge();
 
-        auto beacon = makeShared<MlmorpBeacon>(); // Created new MLMORP beacon
+        auto beacon = makeShared<RlmorpBeacon>(); // Created new RLMORP beacon
 
-        // Set the packet fields in MlmorpBeacon
+        // Set the packet fields in RlmorpBeacon
         Ipv4Address source = (interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress());
         beacon->setChunkLength(b(128)); // size of beacon message in bits
         beacon->setSrcAddress(source);
@@ -444,7 +395,7 @@ void Mlmorp::handleSelfMessage(cMessage *msg)
         beacon->setSignalPower(-1);  // Default signal power in dBm
         beacon->setBuffPktNo(getCurrentBufferPacketNum());    // Default buffPktNo
 
-        // Created new packet for MlmorpBeacon
+        // Created new packet for RlmorpBeacon
         auto packet = new Packet("Beacon", beacon);
         auto addressReq = packet->addTag<L3AddressReq>();
         addressReq->setDestAddress(Ipv4Address(255, 255, 255, 255)); // This to broadcast the packet to all neighbor
@@ -471,11 +422,11 @@ void Mlmorp::handleSelfMessage(cMessage *msg)
     }
 }
 
-void Mlmorp::reschedulePurgeTimer()
+void Rlmorp::reschedulePurgeTimer()
 {
     simtime_t purgeTime = SimTime::getMaxTime();
     for (int i = 0; i < rt->getNumRoutes(); i++) {
-        auto route = dynamic_cast<MlmorpRouteData *>(rt->getRoute(i));
+        auto route = dynamic_cast<RlmorpRouteData *>(rt->getRoute(i));
         if (route && !route->isExpired() && route->getExpirTime() < purgeTime)
             purgeTime = route->getExpirTime();
     }
@@ -484,10 +435,10 @@ void Mlmorp::reschedulePurgeTimer()
         scheduleAt(purgeTime, purgeTimer);
 }
 
-void Mlmorp::purge()
+void Rlmorp::purge()
 {
     for (int i = 0; i < rt->getNumRoutes();) {
-        auto route = dynamic_cast<MlmorpRouteData *>(rt->getRoute(i));
+        auto route = dynamic_cast<RlmorpRouteData *>(rt->getRoute(i));
         if (route && route->isExpired())
             rt->deleteRoute(route);
         else
@@ -499,48 +450,52 @@ void Mlmorp::purge()
 // NetFilter
 //
 
-INetfilter::IHook::Result Mlmorp::routeDatagram(Packet *datagram)
+INetfilter::IHook::Result Rlmorp::routeDatagram(Packet *datagram)
 {
     const auto& networkHeader = getNetworkProtocolHeader(datagram);
     const L3Address& source = networkHeader->getSourceAddress();
     const L3Address& destination = networkHeader->getDestinationAddress();
-    EV_INFO << "MLMORP: Finding next hop: source = " << source << ", destination = " << destination << endl;
+    EV_INFO << "RLMORP: Finding next hop: source = " << source << ", destination = " << destination << endl;
     
     L3Address nextHop;
     if (useOnlineRL && dqnModel != nullptr) {
         // Use reinforcement learning for routing
         nextHop = selectBestNeighborRL(destination, source, datagram->getTreeId());
     } else {
-        // Use DNN-based logic to select next hop
-        nextHop = selectBestNeighborDNN(destination, source);
+        // Fallback: use routing table
+        IRoute *route = rt->findBestMatchingRoute(destination);
+        if (route != nullptr) {
+            nextHop = route->getNextHopAsGeneric();
+        }
     }
     
     datagram->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHop);
     if (nextHop.isUnspecified()) {
-        EV_WARN << "MLMORP: No next hop found, dropping packet: source = " << source << ", destination = " << destination << endl;
-        // Note: Cannot provide feedback when no neighbors available (no neighbor feature vector to store)
+        EV_WARN << "RLMORP: No next hop found, dropping packet: source = " << source << ", destination = " << destination << endl;
+        if (useOnlineRL && dqnModel != nullptr) {
+            // Provide immediate negative feedback for drops with no neighbor
+            std::vector<double> state = getCurrentState();
+            dqnModel->storeExperience(state, 0, -1.0, state, true, 0);
+        }
         if (hasGUI())
             getContainingNode(this)->bubble("No next hop found, dropping packet");
         return DROP;
     }
     else {
-        EV_INFO << "MLMORP: Next hop found: source = " << source << ", destination = " << destination << ", nextHop: " << nextHop << endl;
+        EV_INFO << "RLMORP: Next hop found: source = " << source << ", destination = " << destination << ", nextHop: " << nextHop << endl;
         auto networkInterface = interface80211ptr;
         datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(networkInterface->getInterfaceId());
         return ACCEPT;
     }
 }
 
-INetfilter::IHook::Result Mlmorp::datagramPreRoutingHook(Packet *datagram)
+INetfilter::IHook::Result Rlmorp::datagramPreRoutingHook(Packet *datagram)
 {
     Enter_Method("datagramPreRoutingHook");
 
     const auto& networkHeader = getNetworkProtocolHeader(datagram);
 
     // ---- Data Collection --- //
-    // EV_INFO << "-------- Packet received with packet ID, TreeID --" << datagram->getId() << ", " << datagram->getTreeId() << endl;
-    // EV_INFO << (datagram->getTag<PacketProtocolTag>()->getProtocol() == &Protocol::ipv4) << endl;
-
     if ((networkHeader->getProtocol() == &Protocol::udp)) {
         
         // Check if this packet reached its destination (for RL feedback)
@@ -557,14 +512,40 @@ INetfilter::IHook::Result Mlmorp::datagramPreRoutingHook(Packet *datagram)
             }
         }
           
-        // Collect and write packet data to CSV
-        collectPacketData(datagram);
+        // Output the information about the received packet
+        // This includes traditional cost calculation for dataset collection
+        std::ofstream outFile("results/output.csv", std::ios::app);
+        if (outFile.is_open()) {
+            outFile << simTime()
+                    << "," << datagram->getTreeId()
+                    << "," << networkHeader->getSourceAddress()
+                    << "," << networkHeader->getDestinationAddress();
+
+            if (datagram->findTag<MacAddressInd>() != nullptr) {
+                outFile << "," << datagram->getTag<MacAddressInd>()->getSrcAddress()
+                        << "," << datagram->getTag<MacAddressInd>()->getDestAddress();
+
+            }
+
+            outFile << "," << neighborTable.getAddresses().size()
+                    << "," << energyStorage->getResidualEnergyCapacity().get()
+                    << "," << interface80211ptr->getDatarate();
+
+            if (datagram->findTag<SignalPowerInd>() != nullptr) {
+                outFile << "," << datagram->getTag<SignalPowerInd>()->getPower().get()
+                        << "," << getCurrentBufferPacketNum();
+            }
+
+            outFile << endl;
+            outFile.close();
+        } else {
+            std::cout << "Error opening file!" << std::endl;
+        }
 
     }
     // ------ End of Data Collection ----- //
 
-    bool useDNN = par("useDNNRouting").boolValue();
-    if (useDNN || useOnlineRL) {
+    if (useOnlineRL) {
         // Check if this is an ACK packet (MANET protocol)
         bool isAckPacket = false;
         if (datagram->findTag<PacketProtocolTag>() != nullptr) {
@@ -572,12 +553,12 @@ INetfilter::IHook::Result Mlmorp::datagramPreRoutingHook(Packet *datagram)
             if (packetProtocol == &Protocol::manet) {
                 // Check if it's an ACK packet by trying to peek at the data
                 const Ptr<const Chunk> chunk = datagram->peekData();
-                auto ackData = dynamicPtrCast<const MlmorpAck>(chunk);
+                auto ackData = dynamicPtrCast<const RlmorpAck>(chunk);
                 isAckPacket = (ackData != nullptr);
             }
         }
         
-        // If ML-based routing or RL is enabled, use DNN/RL to select the next hop        
+        // If RL is enabled, use RL to select the next hop        
         if ((networkHeader->getProtocol() == &Protocol::udp) || isAckPacket) {
             // Apply to UDP packets or ACK packets
             // Extract destination address from the network header
@@ -587,26 +568,23 @@ INetfilter::IHook::Result Mlmorp::datagramPreRoutingHook(Packet *datagram)
             else
                 return routeDatagram(datagram);
         }
-
     } else {
-        // If ML-based routing is not enabled, fall back to default behavior (could be legacy/routing table)
+        // If RL is not enabled, fall back to routing table
         return ACCEPT;
     }
-
 
     // Accept the packet for forwarding
     return ACCEPT;
 }
 
-INetfilter::IHook::Result Mlmorp::datagramLocalOutHook(Packet *datagram)
+INetfilter::IHook::Result Rlmorp::datagramLocalOutHook(Packet *datagram)
 {
     Enter_Method("datagramLocalOutHook");
 
     // Extract destination address from the network header
     const auto& networkHeader = getNetworkProtocolHeader(datagram);
 
-    bool useDNN = par("useDNNRouting").boolValue();
-    if (useDNN || useOnlineRL) {
+    if (useOnlineRL) {
         // Check if this is an ACK packet (MANET protocol)
         bool isAckPacket = false;
         if (datagram->findTag<PacketProtocolTag>() != nullptr) {
@@ -614,12 +592,12 @@ INetfilter::IHook::Result Mlmorp::datagramLocalOutHook(Packet *datagram)
             if (packetProtocol == &Protocol::manet) {
                 // Check if it's an ACK packet by trying to peek at the data
                 const Ptr<const Chunk> chunk = datagram->peekData();
-                auto ackData = dynamicPtrCast<const MlmorpAck>(chunk);
+                auto ackData = dynamicPtrCast<const RlmorpAck>(chunk);
                 isAckPacket = (ackData != nullptr);
             }
         }
         
-        // If ML-based routing or RL is enabled, use DNN/RL to select the next hop        
+        // If RL is enabled, use RL to select the next hop        
         if ((networkHeader->getProtocol() == &Protocol::udp) || isAckPacket) {
             // Apply to UDP packets or ACK packets
             // Extract destination address from the network header
@@ -629,9 +607,8 @@ INetfilter::IHook::Result Mlmorp::datagramLocalOutHook(Packet *datagram)
             else
                 return routeDatagram(datagram);
         }
-
     } else {
-        // If ML-based routing is not enabled, fall back to default behavior (could be legacy/routing table)
+        // If RL is not enabled, fall back to routing table
         return ACCEPT;
     }
 
@@ -642,7 +619,7 @@ INetfilter::IHook::Result Mlmorp::datagramLocalOutHook(Packet *datagram)
 // notification
 //
 
-void Mlmorp::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details) {
+void Rlmorp::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details) {
     Enter_Method("%s", cComponent::getSignalName(signalID));
 
     if (nodeStatus->getState() == NodeStatus::DOWN) {
@@ -651,75 +628,19 @@ void Mlmorp::receiveSignal(cComponent *source, simsignal_t signalID, cObject *ob
 }
 
 /**
- * Select the best next-hop neighbor using DNN model predictions
- * @param destination The destination address
- * @return The best neighbor address for routing
+ * Calculate traditional routing cost (for dataset collection)
  */
-L3Address Mlmorp::selectBestNeighborDNN(const L3Address& destination, const L3Address& source) const
+double Rlmorp::calculateTraditionalCost(float recBeaconCost, double residualEnergy, double dataRate) const
 {
-    // Get current node's address
-    Ipv4Address currentNode = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
-    
-    // Get all available neighbors
-    std::vector<L3Address> neighbors = neighborTable.getAddresses();
-    
-    if (neighbors.empty()) {
-        return L3Address();
-    }
-    
-    // Filter out self and source address from neighbors (prevent routing loops)
-    std::vector<L3Address> validNeighbors;
-    for (const auto& neighbor : neighbors) {
-        if (neighbor != currentNode && neighbor != source) {
-            validNeighbors.push_back(neighbor);
-        }
-    }
-    
-    if (validNeighbors.empty()) {
-        return L3Address();
-    }
-    
-    // Check if any neighbor is the destination (direct delivery)
-    for (const auto& neighbor : validNeighbors) {
-        if (neighbor == destination) {
-            return neighbor;
-        }
-    }
-    
-    // If only one valid neighbor, return it
-    if (validNeighbors.size() == 1) {
-        return validNeighbors[0];
-    }
-    
-    // Create feature map for each neighbor
-    std::map<L3Address, std::vector<double>> neighborFeatures;
-    
-    for (const auto& neighbor : validNeighbors) {
-        std::vector<double> features;
-        
-        // Get neighbor information
-        double residualEnergy = neighborTable.getResidualEnergy(neighbor);
-        int nodeDegree = neighborTable.getNodeDegree(neighbor);
-        
-        // Get interface information for data rate
-        double dataRate = interface80211ptr->getDatarate();
-        
-        // Get values for signal power and buffPktNo
-        double signalPower = neighborTable.getSignalPower(neighbor);  // Default signal power
-        double buffPktNo = neighborTable.getBuffPktNo(neighbor);         // Default buffPktNo
-        
-        // Create feature vector: [residualEnergy, dataRate, signalPower, nodeDegree, buffPktNo]
-        features = {residualEnergy, dataRate, signalPower, static_cast<double>(nodeDegree), buffPktNo};
-        
-        neighborFeatures[neighbor] = features;
-    }
-    
-    // Use DNN model to select best neighbor
-    return dnnModel->selectBestNeighbor(validNeighbors, neighborFeatures);
+    double hopCost = recBeaconCost + 1;
+    double energyCost = recBeaconCost + (1 - residualEnergy/energyStorage->getNominalEnergyCapacity().get());
+    double bandwidthCost = recBeaconCost + 56000000/dataRate;
+    double cost = alpha*hopCost + beta*energyCost + gamma*bandwidthCost;
+    return cost;
 }
 
 // Utility function to get the current MAC buffer (pendingQueue) packet count
-int Mlmorp::getCurrentBufferPacketNum() const
+int Rlmorp::getCurrentBufferPacketNum() const
 {
     if (interface80211ptr) {
         cModule *mac = interface80211ptr->getSubmodule("mac");
@@ -732,7 +653,6 @@ int Mlmorp::getCurrentBufferPacketNum() const
                     if (pendingQueueModule) {
                         auto pendingQueue = check_and_cast<inet::queueing::IPacketQueue *>(pendingQueueModule);
                         int numPackets = pendingQueue->getNumPackets();
-                        // EV_INFO << "MAC buffer (pendingQueue) contains " << numPackets << " packets\n";
                         return numPackets;
                     }
                 }
@@ -743,55 +663,9 @@ int Mlmorp::getCurrentBufferPacketNum() const
 }
 
 /**
- * Utility function to collect and write packet data to CSV file
- */
-void Mlmorp::collectPacketData(Packet *datagram)
-{
-    const auto& networkHeader = getNetworkProtocolHeader(datagram);
-    
-    // Output the information about the received packet
-    std::ofstream outFile("results/output.csv", std::ios::app);
-    if (outFile.is_open()) {
-        outFile << simTime()
-                << "," << datagram->getTreeId()
-                << "," << networkHeader->getSourceAddress()
-                << "," << networkHeader->getDestinationAddress();
-
-        if (datagram->findTag<MacAddressInd>() != nullptr) {
-            outFile << "," << datagram->getTag<MacAddressInd>()->getSrcAddress()
-                    << "," << datagram->getTag<MacAddressInd>()->getDestAddress();
-        }
-
-        outFile << "," << neighborTable.getAddresses().size()
-                << "," << energyStorage->getResidualEnergyCapacity().get()
-                << "," << interface80211ptr->getDatarate();
-
-        if (datagram->findTag<SignalPowerInd>() != nullptr) {
-            outFile << "," << datagram->getTag<SignalPowerInd>()->getPower().get()
-                    // << "," << datagram->getTag<SnirInd>()->getMinimumSnir();
-                    << "," << getCurrentBufferPacketNum();
-        }
-
-        // Adding the time delay of the packet to Data Collection
-        // auto data = datagram->peekData(); // get all data from the packet
-        // auto regions = data->getAllTags<CreationTimeTag>(); // get all tag regions
-        // for (auto &region : regions) { // for each region do
-        //     auto creationTime = region.getTag()->getCreationTime().dbl(); // original time
-        //     auto delay = simTime() - creationTime; // compute delay
-        //     outFile << "," << delay;
-        // }
-
-        outFile << endl;
-        outFile.close();
-    } else {
-        std::cout << "Error opening file!" << std::endl;
-    }
-}
-
-/**
  * Select the best next-hop neighbor using DQN reinforcement learning
  */
-L3Address Mlmorp::selectBestNeighborRL(const L3Address& destination, const L3Address& source, int treeId)
+L3Address Rlmorp::selectBestNeighborRL(const L3Address& destination, const L3Address& source, int treeId)
 {
     // Get current node's address
     Ipv4Address currentNode = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
@@ -825,97 +699,58 @@ L3Address Mlmorp::selectBestNeighborRL(const L3Address& destination, const L3Add
     for (const auto& neighbor : validNeighbors) {
         if (neighbor == destination) {
             EV_INFO << "DQN Routing: Neighbor is destination, direct delivery to " << destination << endl;
-            
-            // This is a terminal decision - store experience immediately
-            bool isTerminalDecision = true;
-            std::vector<std::vector<double>> nextNeighborFeaturesList;  // Empty for terminal
-            double intermediateReward = -0.01;
-            
-            std::vector<double> neighborFeatures = buildNeighborFeatureVector(neighbor);
-            dqnModel->storeExperience(neighborFeatures, intermediateReward, nextNeighborFeaturesList, 
-                                    isTerminalDecision, treeId, currentNode, true);  // Will be updated with final reward
-            
             // Still track for RL feedback
             if (packetTracker != nullptr) {
+                std::vector<double> state = getCurrentState();
                 double currentEnergy = energyStorage->getResidualEnergyCapacity().get();
                 packetTracker->trackPacket(treeId, currentNode, destination, neighbor, simTime(),
-                                         neighborFeatures, currentEnergy);
+                                         state, 0, currentEnergy, validNeighbors.size());
             }
             return neighbor;
         }
     }
     
-    L3Address selectedNeighbor;
+    // Get current state features
+    std::vector<double> state = getCurrentState();
     
-    // If only one valid neighbor, use it
+    L3Address selectedNeighbor;
+    int selectedAction = 0;
+    int actionSpaceSize = 0;
+    
+    // If only one valid neighbor, use it (action 0)
     if (validNeighbors.size() == 1) {
         selectedNeighbor = validNeighbors[0];
+        selectedAction = 0;
+        actionSpaceSize = 1;
         EV_INFO << "DQN Routing: Single neighbor, selected=" << selectedNeighbor << endl;
     } else {
-        // Epsilon-greedy action selection over neighbors
-        double randVal = uniform(0.0, 1.0);
+        // Convert neighbors to action indices
+        std::vector<int> availableActions;
+        for (int i = 0; i < validNeighbors.size() && i < dqnModel->getMaxActions(); i++) {
+            availableActions.push_back(i);
+        }
+        actionSpaceSize = availableActions.size();
         
-        if (randVal < dqnModel->getEpsilon()) {
-            // Explore: choose random neighbor
-            int randomIndex = intuniform(0, validNeighbors.size() - 1);
-            selectedNeighbor = validNeighbors[randomIndex];
-            EV_INFO << "DQN Routing: Exploration - randomly selected neighbor=" << selectedNeighbor 
-                    << " (epsilon=" << dqnModel->getEpsilon() << ")" << endl;
+        // Select action using DQN
+        selectedAction = dqnModel->selectAction(state, availableActions);
+        
+        if (selectedAction >= 0 && selectedAction < validNeighbors.size()) {
+            selectedNeighbor = validNeighbors[selectedAction];
+            EV_INFO << "DQN Routing: Selected neighbor=" << selectedNeighbor 
+                    << " (action=" << selectedAction << ", epsilon=" << dqnModel->getEpsilon() << ")" << endl;
         } else {
-            // Exploit: choose argmax_j Q(x(i,j))
-            double bestQValue = -std::numeric_limits<double>::max();
-            L3Address bestNeighbor = validNeighbors[0];
-            
-            for (const auto& neighbor : validNeighbors) {
-                std::vector<double> neighborFeatures = buildNeighborFeatureVector(neighbor);
-                double qValue = dqnModel->scoreNeighbor(neighborFeatures);
-                
-                if (qValue > bestQValue) {
-                    bestQValue = qValue;
-                    bestNeighbor = neighbor;
-                }
-            }
-            
-            selectedNeighbor = bestNeighbor;
-            EV_INFO << "DQN Routing: Exploitation - selected neighbor=" << selectedNeighbor 
-                    << " with Q-value=" << bestQValue << " (epsilon=" << dqnModel->getEpsilon() << ")" << endl;
+            // Fallback to first neighbor if action selection fails
+            selectedNeighbor = validNeighbors[0];
+            selectedAction = 0;
+            EV_WARN << "DQN Routing: Action selection failed, using first neighbor=" << selectedNeighbor << endl;
         }
     }
     
-    // Determine if this is a terminal forwarding decision (neighbor is the destination)
-    bool isTerminalDecision = (selectedNeighbor == destination);
-    
-    // Build feature vectors for all neighbors at current time (for bootstrapping)
-    std::vector<std::vector<double>> nextNeighborFeaturesList;
-    std::vector<L3Address> currentNeighbors = neighborTable.getAddresses();
-    
-    // Build feature vectors for all valid neighbors (exclude self and source)
-    for (const auto& neighbor : currentNeighbors) {
-        if (neighbor != currentNode && neighbor != source) {
-            std::vector<double> neighborFeatures = buildNeighborFeatureVector(neighbor);
-            nextNeighborFeaturesList.push_back(neighborFeatures);
-        }
-    }
-    
-    // Calculate intermediate reward (small penalty per hop to encourage shorter paths)
-    // This provides immediate learning signal; will be updated with final reward when outcome is known
-    double intermediateReward = -0.01;  // Small penalty per hop
-    
-    // Store experience immediately at forwarding time with pending reward
-    // For intermediate hops: done=false enables bootstrapping
-    // For destination hops: done=true (terminal)
-    std::vector<double> neighborFeatures = buildNeighborFeatureVector(selectedNeighbor);
-    dqnModel->storeExperience(neighborFeatures, intermediateReward, nextNeighborFeaturesList, 
-                            isTerminalDecision, treeId, currentNode, true);  // rewardPending = true
-    
-    EV_INFO << "DQN Routing: Stored experience at forwarding time with done=" << isTerminalDecision 
-            << ", intermediateReward=" << intermediateReward << ", treeId=" << treeId << endl;
-    
-    // Track this packet for feedback (store chosen neighbor's feature vector)
+    // Track this packet for feedback
     if (packetTracker != nullptr) {
         double currentEnergy = energyStorage->getResidualEnergyCapacity().get();
         packetTracker->trackPacket(treeId, currentNode, destination, selectedNeighbor, simTime(),
-                                 neighborFeatures, currentEnergy);
+                                 state, selectedAction, currentEnergy, actionSpaceSize);
         EV_INFO << "DQN Routing: Packet " << treeId << " tracked for destination " << destination << endl;
     } else {
         EV_WARN << "DQN Routing: packetTracker is null, cannot track packet" << endl;
@@ -932,40 +767,45 @@ L3Address Mlmorp::selectBestNeighborRL(const L3Address& destination, const L3Add
 }
 
 /**
- * Build neighbor feature vector x(i,j) for neighbor j
- * Feature vector: [neighborResidualEnergy, neighborDataRate, linkSignalPower(i↔j), neighborQueueLength, neighborNodeDegree]
+ * Get current state features for reinforcement learning
  */
-std::vector<double> Mlmorp::buildNeighborFeatureVector(const L3Address& neighbor) const
+std::vector<double> Rlmorp::getCurrentState() const
 {
-    std::vector<double> features;
+    std::vector<double> state;
     
-    // Feature 1: neighborResidualEnergy
-    double residualEnergy = neighborTable.getResidualEnergy(neighbor);
-    features.push_back(residualEnergy);
+    // Feature 1: Residual energy (normalized)
+    double residualEnergy = energyStorage->getResidualEnergyCapacity().get();
+    state.push_back(residualEnergy);
     
-    // Feature 2: neighborDataRate
-    double dataRate = neighborTable.getDataRate(neighbor);
-    features.push_back(dataRate);
+    // Feature 2: Data rate
+    double dataRate = interface80211ptr->getDatarate();
+    state.push_back(dataRate);
     
-    // Feature 3: linkSignalPower(i↔j) - signal power from current node to neighbor j
-    double signalPower = neighborTable.getSignalPower(neighbor);
-    features.push_back(signalPower);
+    // Feature 3: Average signal power from neighbors
+    double avgSignalPower = 0.0;
+    std::vector<L3Address> neighbors = neighborTable.getAddresses();
+    if (!neighbors.empty()) {
+        for (const auto& neighbor : neighbors) {
+            avgSignalPower += neighborTable.getSignalPower(neighbor);
+        }
+        avgSignalPower /= neighbors.size();
+    }
+    state.push_back(avgSignalPower);
     
-    // Feature 4: neighborQueueLength (buffPktNo)
-    double buffPktNo = neighborTable.getBuffPktNo(neighbor);
-    features.push_back(buffPktNo);
+    // Feature 4: Node degree (number of neighbors)
+    state.push_back(static_cast<double>(neighbors.size()));
     
-    // Feature 5: neighborNodeDegree
-    int nodeDegree = neighborTable.getNodeDegree(neighbor);
-    features.push_back(static_cast<double>(nodeDegree));
+    // Feature 5: Buffer packet number
+    double buffPktNo = getCurrentBufferPacketNum();
+    state.push_back(buffPktNo);
     
-    return features;
+    return state;
 }
 
 /**
  * Perform reinforcement learning update
  */
-void Mlmorp::performRLUpdate()
+void Rlmorp::performRLUpdate()
 {
     if (packetTracker == nullptr || dqnModel == nullptr) {
         EV_WARN << "RL Update: Cannot perform update - packetTracker or dqnModel is null" << endl;
@@ -1008,44 +848,26 @@ void Mlmorp::performRLUpdate()
     // Check buffer size before adding experiences
     size_t bufferSizeBefore = dqnModel->getReplayBufferSize();
     
-    // Update pending experiences with final rewards when packets complete
-    Ipv4Address currentNode = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
-    
+    // Add experiences to DQN replay buffer
     for (const auto& packet : completedPackets) {
-        // Calculate final reward based on delivery outcome
-        double finalReward = packetTracker->calculateReward(packet, packet.confirmed, 
-                                                           packet.energyAfter, packet.deliveryTime);
+        // Calculate reward using configurable parameters from PacketTracker
+        double reward = packetTracker->calculateReward(packet, packet.confirmed, packet.energyAfter, packet.deliveryTime);
         
-        // All completed packets are terminal (destination reached or timeout)
-        bool isTerminal;
-
+        // Get next state (current state)
+        std::vector<double> nextState = getCurrentState();
         
-        // Case 1: packet timed out or failed → terminal
-        if (!packet.confirmed) {
-            isTerminal = true;
-        }
-        // Case 2: packet delivered
-        else {
-            // terminal ONLY if this hop delivered to destination
-            isTerminal = (packet.forwardedTo == packet.destination);
-        }
-        // Update the pending experience stored at forwarding time with final reward
-        // This propagates delivery success/failure to the chosen neighbor
-        dqnModel->updatePendingExperienceReward(packet.treeId, currentNode, finalReward, isTerminal);
-        
-        EV_INFO << "DQN Routing: Updated pending experience for treeId=" << packet.treeId 
-                << " with finalReward=" << finalReward << ", confirmed=" << packet.confirmed << endl;
+        // Store experience with the action space size captured at decision time
+        dqnModel->storeExperience(packet.state, packet.action, reward, nextState, true, packet.availableActions);
     }
     
     // Check buffer size after adding experiences
     size_t bufferSizeAfter = dqnModel->getReplayBufferSize();
     
-    // Perform training step (requires at least batchSize finalized experiences)
+    // Perform training step (requires at least 32 experiences by default)
     size_t bufferSize = dqnModel->getReplayBufferSize();
-    int requiredBatchSize = dqnModel->getBatchSize();
-    if (bufferSize < requiredBatchSize) {
+    if (bufferSize < 32) {
         EV_INFO << "RL Update: Buffer too small for training (have " << bufferSize 
-                << ", need " << requiredBatchSize << "). Added " << (bufferSizeAfter - bufferSizeBefore) 
+                << ", need 32). Added " << (bufferSizeAfter - bufferSizeBefore) 
                 << " experiences. Total tracked=" << packetTracker->getTrackedCount() << endl;
     } else {
         double loss = dqnModel->trainStep();
@@ -1066,7 +888,7 @@ void Mlmorp::performRLUpdate()
 /**
  * Handle RL update timer events
  */
-void Mlmorp::handleRLUpdate()
+void Rlmorp::handleRLUpdate()
 {
     performRLUpdate();
     
@@ -1077,14 +899,14 @@ void Mlmorp::handleRLUpdate()
 /**
  * Send acknowledgment packet back to source
  */
-void Mlmorp::sendAcknowledgment(int treeId, const L3Address& originalSource, const L3Address& originalDestination)
+void Rlmorp::sendAcknowledgment(int treeId, const L3Address& originalSource, const L3Address& originalDestination)
 {
     if (!useOnlineRL || packetTracker == nullptr) {
         return;  // ACK only needed for online RL
     }
     
     // Create ACK packet
-    auto ackData = makeShared<MlmorpAck>();
+    auto ackData = makeShared<RlmorpAck>();
     ackData->setTreeId(treeId);
     // Convert L3Address to Ipv4Address
     Ipv4Address origSource = originalSource.toIpv4();
@@ -1094,7 +916,7 @@ void Mlmorp::sendAcknowledgment(int treeId, const L3Address& originalSource, con
     ackData->setDeliveryTime(simTime());
     ackData->setChunkLength(B(20));  // Small ACK packet
     
-    auto ackPacket = new Packet("MLMORP-ACK");
+    auto ackPacket = new Packet("RLMORP-ACK");
     ackPacket->insertAtBack(ackData);
     
     // Set up routing for ACK (send back to original source)
@@ -1106,26 +928,28 @@ void Mlmorp::sendAcknowledgment(int treeId, const L3Address& originalSource, con
     ackPacket->addTag<PacketProtocolTag>()->setProtocol(&Protocol::manet);
     ackPacket->addTag<DispatchProtocolReq>()->setProtocol(&Protocol::ipv4);
     
-    // Use DQN/DNN policy to find next hop (same as data packets)
+    // Use RL policy to find next hop
     L3Address nextHop;
     if (useOnlineRL && dqnModel != nullptr) {
         // Use reinforcement learning for routing ACK
         nextHop = selectBestNeighborRL(originalSource, L3Address(currentNode), treeId);
     } else {
-        // Use DNN-based logic to select next hop for ACK
-        nextHop = selectBestNeighborDNN(originalSource, L3Address(currentNode));
+        EV_WARN << "RLMORP: No RL model available for ACK routing, dropping" << endl;
+        delete ackPacket;
+        return;
     }
     
     if (!nextHop.isUnspecified()) {
         ackPacket->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHop);
         // Send ACK packet
         send(ackPacket, "ipOut");
-        EV_INFO << "MLMORP: Sent ACK for packet " << treeId << " to " << originalSource 
-                << " via nextHop " << nextHop << " using DQN/DNN policy" << endl;
+        EV_INFO << "RLMORP: Sent ACK for packet " << treeId << " to " << originalSource 
+                << " via nextHop " << nextHop << " using RL policy" << endl;
     } else {
-        EV_WARN << "MLMORP: No next hop found for ACK to " << originalSource << ", dropping" << endl;
+        EV_WARN << "RLMORP: No next hop found for ACK to " << originalSource << ", dropping" << endl;
         delete ackPacket;
     }
 }
 
 } /* namespace inet */
+

@@ -1,13 +1,13 @@
 
 // Author: Basheer Al-Qassab
 
-#include "inet/routing/mlmorp/MlmorpNeighborTable.h"
+#include "inet/routing/rlmorp/RlmorpNeighborTable.h"
 #include "inet/common/stlutils.h"
 
 namespace inet {
 
 // return a vector containing all the neighbor addresses
-std::vector<L3Address> MlmorpNeighborTable::getAddresses() const
+std::vector<L3Address> RlmorpNeighborTable::getAddresses() const
 {
     std::vector<L3Address> addresses;
     for (const auto& elem : addressToNeighborMap)
@@ -16,63 +16,57 @@ std::vector<L3Address> MlmorpNeighborTable::getAddresses() const
 }
 
 // check if the node is a neighbor with specified address
-bool MlmorpNeighborTable::hasNeighbor(const L3Address& address) const
+bool RlmorpNeighborTable::hasNeighbor(const L3Address& address) const
 {
     return containsKey(addressToNeighborMap, address);
 }
 
 // return the network interface ID of a specified neighbor
-int MlmorpNeighborTable::getNetworkInterfaceId(const L3Address& address) const
+int RlmorpNeighborTable::getNetworkInterfaceId(const L3Address& address) const
 {
     auto it = addressToNeighborMap.find(address);
     return (it == addressToNeighborMap.end()) ? -1 : it->second.networkInterfaceId;
 }
 
-Coord MlmorpNeighborTable::getPosition(const L3Address& address) const
+Coord RlmorpNeighborTable::getPosition(const L3Address& address) const
 {
     auto it = addressToNeighborMap.find(address);
     return (it == addressToNeighborMap.end()) ? Coord::NIL : it->second.position;
 }
 
-int MlmorpNeighborTable::getNodeDegree(const L3Address& address) const
+int RlmorpNeighborTable::getNodeDegree(const L3Address& address) const
 {
     auto it = addressToNeighborMap.find(address);
     return (it == addressToNeighborMap.end()) ? -1 : it->second.nodeDegree;
 }
 
-double MlmorpNeighborTable::getResidualEnergy(const L3Address& address) const
+double RlmorpNeighborTable::getResidualEnergy(const L3Address& address) const
 {
     auto it = addressToNeighborMap.find(address);
     return (it == addressToNeighborMap.end()) ? -1 : it->second.residualEnergy;
 }
 
-double MlmorpNeighborTable::getBuffPktNo(const L3Address& address) const
+double RlmorpNeighborTable::getBuffPktNo(const L3Address& address) const
 {
     auto it = addressToNeighborMap.find(address);
     return (it == addressToNeighborMap.end()) ? -1 : it->second.buffPktNo;
 }
 
-double MlmorpNeighborTable::getSignalPower(const L3Address& address) const
+double RlmorpNeighborTable::getSignalPower(const L3Address& address) const
 {
     auto it = addressToNeighborMap.find(address);
     return (it == addressToNeighborMap.end()) ? -1 : it->second.signalPower;
 }
 
-double MlmorpNeighborTable::getDataRate(const L3Address& address) const
-{
-    auto it = addressToNeighborMap.find(address);
-    return (it == addressToNeighborMap.end()) ? -1 : it->second.dataRate;
-}
-
 // used to add or update new neighbor to the table
-void MlmorpNeighborTable::updateNeighbor(const L3Address& address, int networkInterfaceId, const Coord& position, int nodeDegree, double residualEnergy, double signalPower, double buffPktNo, double dataRate)
+void RlmorpNeighborTable::updateNeighbor(const L3Address& address, int networkInterfaceId, const Coord& position, int nodeDegree, double residualEnergy, double signalPower, double buffPktNo)
 {
     ASSERT(!address.isUnspecified());
-    addressToNeighborMap[address] = Neighbor(networkInterfaceId, position, nodeDegree, residualEnergy, signalPower, buffPktNo, dataRate, simTime());
+    addressToNeighborMap[address] = Neighbor(networkInterfaceId, position, nodeDegree, residualEnergy, signalPower, buffPktNo, simTime());
 }
 
 // to get the time of the oldest neighbor in the table (the less time the oldest)
-simtime_t MlmorpNeighborTable::getOldestNeighbor() const
+simtime_t RlmorpNeighborTable::getOldestNeighbor() const
 {
     simtime_t oldestNeighborTime = SimTime::getMaxTime();
     for (const auto& elem : addressToNeighborMap) {
@@ -84,14 +78,14 @@ simtime_t MlmorpNeighborTable::getOldestNeighbor() const
 }
 
 // remove the neighbor with a specified address
-void MlmorpNeighborTable::removeNeighbor(const L3Address& address)
+void RlmorpNeighborTable::removeNeighbor(const L3Address& address)
 {
     auto it = addressToNeighborMap.find(address);
     addressToNeighborMap.erase(it);
 }
 
 // purge the neighbor table based on the provided time
-void MlmorpNeighborTable::removeOldNeighbors(simtime_t timestamp)
+void RlmorpNeighborTable::removeOldNeighbors(simtime_t timestamp)
 {
     for (auto it = addressToNeighborMap.begin(); it != addressToNeighborMap.end();)
         if (it->second.lastUpdate <= timestamp)
@@ -102,20 +96,19 @@ void MlmorpNeighborTable::removeOldNeighbors(simtime_t timestamp)
 }
 
 // remove all the neighbor in the neighbor table
-void MlmorpNeighborTable::clear()
+void RlmorpNeighborTable::clear()
 {
     addressToNeighborMap.clear();
 }
 
 // This function is used to show the neighbor table in info
-std::ostream& operator<<(std::ostream& o, const MlmorpNeighborTable& t)
+std::ostream& operator<<(std::ostream& o, const RlmorpNeighborTable& t)
 {
     o << "{ ";
     for (auto elem : t.addressToNeighborMap) {
         o << elem.first << "@" << elem.second.lastUpdate << ": POS:" << elem.second.position
                 << ", NeiD:" << elem.second.nodeDegree << ", ReE:" << elem.second.residualEnergy
-                << ", SigP:" << elem.second.signalPower << ", BUFF:" << elem.second.buffPktNo
-                << ", DataRate:" << elem.second.dataRate << ";\n";
+                << ", SigP:" << elem.second.signalPower << ", BUFF:" << elem.second.buffPktNo << ";\n";
     }
     o << "}";
     return o;

@@ -2,6 +2,7 @@
     "files.associations": {
         "*.py": "python",
         "random": "cpp",
-        "xlocale": "cpp"
+        "xlocale": "cpp",
+        "sstream": "cpp"
     }
 }

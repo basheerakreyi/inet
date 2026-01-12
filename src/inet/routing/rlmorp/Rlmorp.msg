@@ -8,7 +8,7 @@ import inet.common.geometry.Geometry;
 
 namespace inet;
 
-class MlmorpBeacon extends FieldsChunk
+class RlmorpBeacon extends FieldsChunk
 {
     Ipv4Address srcAddress;        // Node that generate the beacon
     Ipv4Address nextAddress;       // Node that transmits or re-transmits the packet    
@@ -24,10 +24,11 @@ class MlmorpBeacon extends FieldsChunk
     double buffPktNo;                   // Signal-to-Noise-plus-Interference Ratio in dB
 }
 
-class MlmorpAck extends FieldsChunk
+class RlmorpAck extends FieldsChunk
 {
     int treeId;                     // Tree ID of the original packet being acknowledged
     Ipv4Address originalSource;    // Original source address of the packet
     Ipv4Address originalDestination; // Original destination address of the packet
     simtime_t deliveryTime;         // Time when packet was delivered at destination
 }
+

@@ -1,10 +1,10 @@
 // Author: Basheer Al-Qassab
 
-package inet.routing.mlmorp;
+package inet.routing.rlmorp;
 
 import inet.routing.contract.IManetRouting;
 
-simple Mlmorp like IManetRouting
+simple Rlmorp like IManetRouting
 {
     parameters:
         @display("i=block/routing");
@@ -21,15 +21,6 @@ simple Mlmorp like IManetRouting
         double alpha = default(1);                            // Weight for hop
         double beta = default(0);                             // Weight for energy
         double gamma = default(0);                            // Weight for bandwidth
-        
-        // DNN Model Parameters
-        bool useDNNRouting = default(false);                  // Enable DNN-based routing
-        bool useDNNforRoutingCost = default(false);           // Enable DNN-based to calculate routing cost
-        int dnnInputSize = default(5);                        // Number of input features
-        int dnnHiddenSize1 = default(12);                     // Number of neurons in first hidden layer
-        int dnnHiddenSize2 = default(6);                      // Number of neurons in second hidden layer
-        bool dnnClassification = default(true);               // True for classification, false for regression
-        string dnnModelFile = default("");                    // Path to pre-trained model file (optional)
         
         // Reinforcement Learning Parameters
         bool useOnlineRL = default(false);                    // Enable online reinforcement learning
@@ -56,3 +47,4 @@ simple Mlmorp like IManetRouting
         input ipIn;
         output ipOut;
 }
+

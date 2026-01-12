@@ -1,9 +1,9 @@
 //
-// Generated file, do not edit! Created by opp_msgtool 6.0 from inet/routing/mlmorp/Mlmorp.msg.
+// Generated file, do not edit! Created by opp_msgtool 6.0 from inet/routing/rlmorp/Rlmorp.msg.
 //
 
-#ifndef __INET_MLMORP_M_H
-#define __INET_MLMORP_M_H
+#ifndef __INET_RLMORP_M_H
+#define __INET_RLMORP_M_H
 
 #if defined(__clang__)
 #  pragma clang diagnostic ignored "-Wreserved-id-macro"
@@ -30,8 +30,8 @@
 
 namespace inet {
 
-class MlmorpBeacon;
-class MlmorpAck;
+class RlmorpBeacon;
+class RlmorpAck;
 
 }  // namespace inet
 
@@ -47,9 +47,9 @@ class MlmorpAck;
 namespace inet {
 
 /**
- * Class generated from <tt>inet/routing/mlmorp/Mlmorp.msg:12</tt> by opp_msgtool.
+ * Class generated from <tt>inet/routing/rlmorp/Rlmorp.msg:12</tt> by opp_msgtool.
  * <pre>
- * class MlmorpBeacon extends FieldsChunk
+ * class RlmorpBeacon extends FieldsChunk
  * {
  *     Ipv4Address srcAddress;        // Node that generate the beacon
  *     Ipv4Address nextAddress;       // Node that transmits or re-transmits the packet    
@@ -66,7 +66,7 @@ namespace inet {
  * }
  * </pre>
  */
-class INET_API MlmorpBeacon : public ::inet::FieldsChunk
+class INET_API RlmorpBeacon : public ::inet::FieldsChunk
 {
   protected:
     Ipv4Address srcAddress;
@@ -81,26 +81,26 @@ class INET_API MlmorpBeacon : public ::inet::FieldsChunk
     double buffPktNo = 0;
 
   private:
-    void copy(const MlmorpBeacon& other);
+    void copy(const RlmorpBeacon& other);
 
   protected:
-    bool operator==(const MlmorpBeacon&) = delete;
+    bool operator==(const RlmorpBeacon&) = delete;
 
   public:
-    MlmorpBeacon();
-    MlmorpBeacon(const MlmorpBeacon& other);
-    virtual ~MlmorpBeacon();
-    MlmorpBeacon& operator=(const MlmorpBeacon& other);
-    virtual MlmorpBeacon *dup() const override {return new MlmorpBeacon(*this);}
+    RlmorpBeacon();
+    RlmorpBeacon(const RlmorpBeacon& other);
+    virtual ~RlmorpBeacon();
+    RlmorpBeacon& operator=(const RlmorpBeacon& other);
+    virtual RlmorpBeacon *dup() const override {return new RlmorpBeacon(*this);}
     virtual void parsimPack(omnetpp::cCommBuffer *b) const override;
     virtual void parsimUnpack(omnetpp::cCommBuffer *b) override;
 
     virtual const Ipv4Address& getSrcAddress() const;
-    virtual Ipv4Address& getSrcAddressForUpdate() { handleChange();return const_cast<Ipv4Address&>(const_cast<MlmorpBeacon*>(this)->getSrcAddress());}
+    virtual Ipv4Address& getSrcAddressForUpdate() { handleChange();return const_cast<Ipv4Address&>(const_cast<RlmorpBeacon*>(this)->getSrcAddress());}
     virtual void setSrcAddress(const Ipv4Address& srcAddress);
 
     virtual const Ipv4Address& getNextAddress() const;
-    virtual Ipv4Address& getNextAddressForUpdate() { handleChange();return const_cast<Ipv4Address&>(const_cast<MlmorpBeacon*>(this)->getNextAddress());}
+    virtual Ipv4Address& getNextAddressForUpdate() { handleChange();return const_cast<Ipv4Address&>(const_cast<RlmorpBeacon*>(this)->getNextAddress());}
     virtual void setNextAddress(const Ipv4Address& nextAddress);
 
     virtual unsigned int getSequenceNumber() const;
@@ -110,7 +110,7 @@ class INET_API MlmorpBeacon : public ::inet::FieldsChunk
     virtual void setCost(float cost);
 
     virtual const Coord& getNextPosition() const;
-    virtual Coord& getNextPositionForUpdate() { handleChange();return const_cast<Coord&>(const_cast<MlmorpBeacon*>(this)->getNextPosition());}
+    virtual Coord& getNextPositionForUpdate() { handleChange();return const_cast<Coord&>(const_cast<RlmorpBeacon*>(this)->getNextPosition());}
     virtual void setNextPosition(const Coord& nextPosition);
 
     virtual int getNodeDegree() const;
@@ -129,13 +129,13 @@ class INET_API MlmorpBeacon : public ::inet::FieldsChunk
     virtual void setBuffPktNo(double buffPktNo);
 };
 
-inline void doParsimPacking(omnetpp::cCommBuffer *b, const MlmorpBeacon& obj) {obj.parsimPack(b);}
-inline void doParsimUnpacking(omnetpp::cCommBuffer *b, MlmorpBeacon& obj) {obj.parsimUnpack(b);}
+inline void doParsimPacking(omnetpp::cCommBuffer *b, const RlmorpBeacon& obj) {obj.parsimPack(b);}
+inline void doParsimUnpacking(omnetpp::cCommBuffer *b, RlmorpBeacon& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>inet/routing/mlmorp/Mlmorp.msg:28</tt> by opp_msgtool.
+ * Class generated from <tt>inet/routing/rlmorp/Rlmorp.msg:28</tt> by opp_msgtool.
  * <pre>
- * class MlmorpAck extends FieldsChunk
+ * class RlmorpAck extends FieldsChunk
  * {
  *     int treeId;                     // Tree ID of the original packet being acknowledged
  *     Ipv4Address originalSource;    // Original source address of the packet
@@ -144,7 +144,7 @@ inline void doParsimUnpacking(omnetpp::cCommBuffer *b, MlmorpBeacon& obj) {obj.p
  * }
  * </pre>
  */
-class INET_API MlmorpAck : public ::inet::FieldsChunk
+class INET_API RlmorpAck : public ::inet::FieldsChunk
 {
   protected:
     int treeId = 0;
@@ -153,17 +153,17 @@ class INET_API MlmorpAck : public ::inet::FieldsChunk
     ::omnetpp::simtime_t deliveryTime = SIMTIME_ZERO;
 
   private:
-    void copy(const MlmorpAck& other);
+    void copy(const RlmorpAck& other);
 
   protected:
-    bool operator==(const MlmorpAck&) = delete;
+    bool operator==(const RlmorpAck&) = delete;
 
   public:
-    MlmorpAck();
-    MlmorpAck(const MlmorpAck& other);
-    virtual ~MlmorpAck();
-    MlmorpAck& operator=(const MlmorpAck& other);
-    virtual MlmorpAck *dup() const override {return new MlmorpAck(*this);}
+    RlmorpAck();
+    RlmorpAck(const RlmorpAck& other);
+    virtual ~RlmorpAck();
+    RlmorpAck& operator=(const RlmorpAck& other);
+    virtual RlmorpAck *dup() const override {return new RlmorpAck(*this);}
     virtual void parsimPack(omnetpp::cCommBuffer *b) const override;
     virtual void parsimUnpack(omnetpp::cCommBuffer *b) override;
 
@@ -171,19 +171,19 @@ class INET_API MlmorpAck : public ::inet::FieldsChunk
     virtual void setTreeId(int treeId);
 
     virtual const Ipv4Address& getOriginalSource() const;
-    virtual Ipv4Address& getOriginalSourceForUpdate() { handleChange();return const_cast<Ipv4Address&>(const_cast<MlmorpAck*>(this)->getOriginalSource());}
+    virtual Ipv4Address& getOriginalSourceForUpdate() { handleChange();return const_cast<Ipv4Address&>(const_cast<RlmorpAck*>(this)->getOriginalSource());}
     virtual void setOriginalSource(const Ipv4Address& originalSource);
 
     virtual const Ipv4Address& getOriginalDestination() const;
-    virtual Ipv4Address& getOriginalDestinationForUpdate() { handleChange();return const_cast<Ipv4Address&>(const_cast<MlmorpAck*>(this)->getOriginalDestination());}
+    virtual Ipv4Address& getOriginalDestinationForUpdate() { handleChange();return const_cast<Ipv4Address&>(const_cast<RlmorpAck*>(this)->getOriginalDestination());}
     virtual void setOriginalDestination(const Ipv4Address& originalDestination);
 
     virtual ::omnetpp::simtime_t getDeliveryTime() const;
     virtual void setDeliveryTime(::omnetpp::simtime_t deliveryTime);
 };
 
-inline void doParsimPacking(omnetpp::cCommBuffer *b, const MlmorpAck& obj) {obj.parsimPack(b);}
-inline void doParsimUnpacking(omnetpp::cCommBuffer *b, MlmorpAck& obj) {obj.parsimUnpack(b);}
+inline void doParsimPacking(omnetpp::cCommBuffer *b, const RlmorpAck& obj) {obj.parsimPack(b);}
+inline void doParsimUnpacking(omnetpp::cCommBuffer *b, RlmorpAck& obj) {obj.parsimUnpack(b);}
 
 
 }  // namespace inet
@@ -191,10 +191,10 @@ inline void doParsimUnpacking(omnetpp::cCommBuffer *b, MlmorpAck& obj) {obj.pars
 
 namespace omnetpp {
 
-template<> inline inet::MlmorpBeacon *fromAnyPtr(any_ptr ptr) { return check_and_cast<inet::MlmorpBeacon*>(ptr.get<cObject>()); }
-template<> inline inet::MlmorpAck *fromAnyPtr(any_ptr ptr) { return check_and_cast<inet::MlmorpAck*>(ptr.get<cObject>()); }
+template<> inline inet::RlmorpBeacon *fromAnyPtr(any_ptr ptr) { return check_and_cast<inet::RlmorpBeacon*>(ptr.get<cObject>()); }
+template<> inline inet::RlmorpAck *fromAnyPtr(any_ptr ptr) { return check_and_cast<inet::RlmorpAck*>(ptr.get<cObject>()); }
 
 }  // namespace omnetpp
 
-#endif // ifndef __INET_MLMORP_M_H
+#endif // ifndef __INET_RLMORP_M_H
 

@@ -323,7 +323,7 @@ unsigned int IgmpMessageDescriptor::getFieldTypeFlags(int field) const
     static unsigned int fieldTypeFlags[] = {
         0,    // FIELD_type
         FD_ISEDITABLE,    // FIELD_crc
-        FD_ISEDITABLE,    // FIELD_crcMode
+        0,    // FIELD_crcMode
     };
     return (field >= 0 && field < 3) ? fieldTypeFlags[field] : 0;
 }
@@ -484,7 +484,6 @@ void IgmpMessageDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int f
     IgmpMessage *pp = omnetpp::fromAnyPtr<IgmpMessage>(object); (void)pp;
     switch (field) {
         case FIELD_crc: pp->setCrc(string2ulong(value)); break;
-        case FIELD_crcMode: pp->setCrcMode((inet::CrcMode)string2enum(value, "inet::CrcMode")); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'IgmpMessage'", field);
     }
 }
@@ -519,7 +518,6 @@ void IgmpMessageDescriptor::setFieldValue(omnetpp::any_ptr object, int field, in
     IgmpMessage *pp = omnetpp::fromAnyPtr<IgmpMessage>(object); (void)pp;
     switch (field) {
         case FIELD_crc: pp->setCrc(omnetpp::checked_int_cast<uint16_t>(value.intValue())); break;
-        case FIELD_crcMode: pp->setCrcMode(static_cast<inet::CrcMode>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'IgmpMessage'", field);
     }
 }

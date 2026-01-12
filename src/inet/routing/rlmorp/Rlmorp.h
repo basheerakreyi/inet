@@ -1,7 +1,7 @@
 // Author: Basheer Al-Qassab
 
-#ifndef __INET_MLMORP_H
-#define __INET_MLMORP_H
+#ifndef __INET_RLMORP_H
+#define __INET_RLMORP_H
 
 #include <stdio.h>
 #include <string.h>
@@ -34,19 +34,19 @@
 #include "inet/common/lifecycle/NodeStatus.h"
 
 // Internal includes
-#include "inet/routing/mlmorp/Mlmorp_m.h"
-#include "inet/routing/mlmorp/MlmorpRouteData.h"
-#include "inet/routing/mlmorp/MlmorpNeighborTable.h"
-#include "inet/routing/mlmorp/SimpleDNNModel.h"
-#include "inet/routing/mlmorp/DQNModel.h"
-#include "inet/routing/mlmorp/PacketTracker.h"
+#include "inet/routing/rlmorp/Rlmorp_m.h"
+#include "inet/routing/rlmorp/RlmorpRouteData.h"
+#include "inet/routing/rlmorp/RlmorpNeighborTable.h"
+#include "inet/routing/rlmorp/DQNModel.h"
+#include "inet/routing/rlmorp/PacketTracker.h"
 
 namespace inet {
 
 /**
- * MLMORP protocol implementation.
+ * RLMORP protocol implementation.
+ * Reinforcement Learning-based Multi-Objective Routing Protocol.
  */
-class INET_API Mlmorp : public RoutingProtocolBase, public NetfilterBase::HookBase, public cListener
+class INET_API Rlmorp : public RoutingProtocolBase, public NetfilterBase::HookBase, public cListener
 {
 
 private:
@@ -62,7 +62,6 @@ private:
     cModule *host = nullptr;
     NetworkInterface *interface80211ptr = nullptr;
     int interfaceId = -1;
-//    ModuleRefByPar<IRoutingTable> routingTable;
     opp_component_ptr<IMobility> mobility;
     opp_component_ptr<power::IEpEnergyStorage> energyStorage;
     opp_component_ptr<NodeStatus> nodeStatus;
@@ -71,15 +70,11 @@ private:
     double alpha;
     double beta;
     double gamma;
-    MlmorpNeighborTable neighborTable;
+    RlmorpNeighborTable neighborTable;
 
     // Packet delay tracking
     simtime_t currentPacketDelay;
 
-    
-    // DNN Model for routing decisions (5-12-6-1 architecture)
-    SimpleDNNModel* dnnModel;
-    
     // Reinforcement Learning components
     DQNModel* dqnModel;                    // DQN model for online learning
     PacketTracker* packetTracker;          // Packet delivery feedback tracker
@@ -91,14 +86,6 @@ private:
     int rlPacketCounter;                   // Counter for RL update scheduling
     
     /**
-     * Select the best next-hop neighbor using DNN model predictions
-     * @param destination The destination address
-     * @param source The source address (to prevent routing loops)
-     * @return The best neighbor address for routing
-     */
-    L3Address selectBestNeighborDNN(const L3Address& destination, const L3Address& source) const;
-    
-    /**
      * Select the best next-hop neighbor using DQN reinforcement learning
      * @param destination The destination address
      * @param source The source address (to prevent routing loops)
@@ -108,11 +95,10 @@ private:
     L3Address selectBestNeighborRL(const L3Address& destination, const L3Address& source, int treeId);
     
     /**
-     * Build neighbor feature vector x(i,j) for neighbor j
-     * @param neighbor Address of the neighbor
-     * @return Feature vector [neighborResidualEnergy, neighborDataRate, linkSignalPower, neighborQueueLength, neighborNodeDegree]
+     * Get current state features for reinforcement learning
+     * @return State feature vector
      */
-    std::vector<double> buildNeighborFeatureVector(const L3Address& neighbor) const;
+    std::vector<double> getCurrentState() const;
     
     /**
      * Perform reinforcement learning update
@@ -132,13 +118,16 @@ private:
      */
     void sendAcknowledgment(int treeId, const L3Address& originalSource, const L3Address& originalDestination);
 
-    int getCurrentBufferPacketNum() const;
-    
     /**
-     * Utility function to collect and write packet data to CSV file
-     * @param datagram The packet to collect data from
+     * Calculate traditional routing cost (for dataset collection)
+     * @param recBeaconCost Cost from received beacon
+     * @param residualEnergy Residual energy of the neighbor
+     * @param dataRate Data rate of the neighbor
+     * @return Calculated traditional cost
      */
-    void collectPacketData(Packet *datagram);
+    double calculateTraditionalCost(float recBeaconCost, double residualEnergy, double dataRate) const;
+
+    int getCurrentBufferPacketNum() const;
 
 protected:
     simtime_t beaconInterval;
@@ -147,8 +136,8 @@ protected:
     ModuleRefByPar<INetfilter> networkProtocol;
 
 public:
-    Mlmorp();
-    ~Mlmorp();
+    Rlmorp();
+    ~Rlmorp();
 
 protected:
     // Initialization function
@@ -182,7 +171,7 @@ protected:
     virtual Result datagramLocalInHook(Packet *datagram) override { return ACCEPT; }
     virtual Result datagramLocalOutHook(Packet *datagram) override;
 
-    // DNN routing
+    // Routing
     Result routeDatagram(Packet *datagram);
 
     // Notification when receive a signal
@@ -193,3 +182,4 @@ protected:
 } /* namespace inet */
 
 #endif
+

@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by opp_msgtool 6.0 from inet/routing/mlmorp/Mlmorp.msg.
+// Generated file, do not edit! Created by opp_msgtool 6.0 from inet/routing/rlmorp/Rlmorp.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -28,7 +28,7 @@
 #include <sstream>
 #include <memory>
 #include <type_traits>
-#include "Mlmorp_m.h"
+#include "Rlmorp_m.h"
 
 namespace omnetpp {
 
@@ -152,22 +152,22 @@ void doParsimUnpacking(omnetpp::cCommBuffer *, T& t)
 
 namespace inet {
 
-Register_Class(MlmorpBeacon)
+Register_Class(RlmorpBeacon)
 
-MlmorpBeacon::MlmorpBeacon() : ::inet::FieldsChunk()
+RlmorpBeacon::RlmorpBeacon() : ::inet::FieldsChunk()
 {
 }
 
-MlmorpBeacon::MlmorpBeacon(const MlmorpBeacon& other) : ::inet::FieldsChunk(other)
+RlmorpBeacon::RlmorpBeacon(const RlmorpBeacon& other) : ::inet::FieldsChunk(other)
 {
     copy(other);
 }
 
-MlmorpBeacon::~MlmorpBeacon()
+RlmorpBeacon::~RlmorpBeacon()
 {
 }
 
-MlmorpBeacon& MlmorpBeacon::operator=(const MlmorpBeacon& other)
+RlmorpBeacon& RlmorpBeacon::operator=(const RlmorpBeacon& other)
 {
     if (this == &other) return *this;
     ::inet::FieldsChunk::operator=(other);
@@ -175,7 +175,7 @@ MlmorpBeacon& MlmorpBeacon::operator=(const MlmorpBeacon& other)
     return *this;
 }
 
-void MlmorpBeacon::copy(const MlmorpBeacon& other)
+void RlmorpBeacon::copy(const RlmorpBeacon& other)
 {
     this->srcAddress = other.srcAddress;
     this->nextAddress = other.nextAddress;
@@ -189,7 +189,7 @@ void MlmorpBeacon::copy(const MlmorpBeacon& other)
     this->buffPktNo = other.buffPktNo;
 }
 
-void MlmorpBeacon::parsimPack(omnetpp::cCommBuffer *b) const
+void RlmorpBeacon::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::inet::FieldsChunk::parsimPack(b);
     doParsimPacking(b,this->srcAddress);
@@ -204,7 +204,7 @@ void MlmorpBeacon::parsimPack(omnetpp::cCommBuffer *b) const
     doParsimPacking(b,this->buffPktNo);
 }
 
-void MlmorpBeacon::parsimUnpack(omnetpp::cCommBuffer *b)
+void RlmorpBeacon::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::inet::FieldsChunk::parsimUnpack(b);
     doParsimUnpacking(b,this->srcAddress);
@@ -219,117 +219,117 @@ void MlmorpBeacon::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimUnpacking(b,this->buffPktNo);
 }
 
-const Ipv4Address& MlmorpBeacon::getSrcAddress() const
+const Ipv4Address& RlmorpBeacon::getSrcAddress() const
 {
     return this->srcAddress;
 }
 
-void MlmorpBeacon::setSrcAddress(const Ipv4Address& srcAddress)
+void RlmorpBeacon::setSrcAddress(const Ipv4Address& srcAddress)
 {
     handleChange();
     this->srcAddress = srcAddress;
 }
 
-const Ipv4Address& MlmorpBeacon::getNextAddress() const
+const Ipv4Address& RlmorpBeacon::getNextAddress() const
 {
     return this->nextAddress;
 }
 
-void MlmorpBeacon::setNextAddress(const Ipv4Address& nextAddress)
+void RlmorpBeacon::setNextAddress(const Ipv4Address& nextAddress)
 {
     handleChange();
     this->nextAddress = nextAddress;
 }
 
-unsigned int MlmorpBeacon::getSequenceNumber() const
+unsigned int RlmorpBeacon::getSequenceNumber() const
 {
     return this->sequenceNumber;
 }
 
-void MlmorpBeacon::setSequenceNumber(unsigned int sequenceNumber)
+void RlmorpBeacon::setSequenceNumber(unsigned int sequenceNumber)
 {
     handleChange();
     this->sequenceNumber = sequenceNumber;
 }
 
-float MlmorpBeacon::getCost() const
+float RlmorpBeacon::getCost() const
 {
     return this->cost;
 }
 
-void MlmorpBeacon::setCost(float cost)
+void RlmorpBeacon::setCost(float cost)
 {
     handleChange();
     this->cost = cost;
 }
 
-const Coord& MlmorpBeacon::getNextPosition() const
+const Coord& RlmorpBeacon::getNextPosition() const
 {
     return this->nextPosition;
 }
 
-void MlmorpBeacon::setNextPosition(const Coord& nextPosition)
+void RlmorpBeacon::setNextPosition(const Coord& nextPosition)
 {
     handleChange();
     this->nextPosition = nextPosition;
 }
 
-int MlmorpBeacon::getNodeDegree() const
+int RlmorpBeacon::getNodeDegree() const
 {
     return this->nodeDegree;
 }
 
-void MlmorpBeacon::setNodeDegree(int nodeDegree)
+void RlmorpBeacon::setNodeDegree(int nodeDegree)
 {
     handleChange();
     this->nodeDegree = nodeDegree;
 }
 
-double MlmorpBeacon::getResidualEnergy() const
+double RlmorpBeacon::getResidualEnergy() const
 {
     return this->residualEnergy;
 }
 
-void MlmorpBeacon::setResidualEnergy(double residualEnergy)
+void RlmorpBeacon::setResidualEnergy(double residualEnergy)
 {
     handleChange();
     this->residualEnergy = residualEnergy;
 }
 
-double MlmorpBeacon::getDataRate() const
+double RlmorpBeacon::getDataRate() const
 {
     return this->dataRate;
 }
 
-void MlmorpBeacon::setDataRate(double dataRate)
+void RlmorpBeacon::setDataRate(double dataRate)
 {
     handleChange();
     this->dataRate = dataRate;
 }
 
-double MlmorpBeacon::getSignalPower() const
+double RlmorpBeacon::getSignalPower() const
 {
     return this->signalPower;
 }
 
-void MlmorpBeacon::setSignalPower(double signalPower)
+void RlmorpBeacon::setSignalPower(double signalPower)
 {
     handleChange();
     this->signalPower = signalPower;
 }
 
-double MlmorpBeacon::getBuffPktNo() const
+double RlmorpBeacon::getBuffPktNo() const
 {
     return this->buffPktNo;
 }
 
-void MlmorpBeacon::setBuffPktNo(double buffPktNo)
+void RlmorpBeacon::setBuffPktNo(double buffPktNo)
 {
     handleChange();
     this->buffPktNo = buffPktNo;
 }
 
-class MlmorpBeaconDescriptor : public omnetpp::cClassDescriptor
+class RlmorpBeaconDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertyNames;
@@ -346,8 +346,8 @@ class MlmorpBeaconDescriptor : public omnetpp::cClassDescriptor
         FIELD_buffPktNo,
     };
   public:
-    MlmorpBeaconDescriptor();
-    virtual ~MlmorpBeaconDescriptor();
+    RlmorpBeaconDescriptor();
+    virtual ~RlmorpBeaconDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -373,24 +373,24 @@ class MlmorpBeaconDescriptor : public omnetpp::cClassDescriptor
     virtual void setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const override;
 };
 
-Register_ClassDescriptor(MlmorpBeaconDescriptor)
+Register_ClassDescriptor(RlmorpBeaconDescriptor)
 
-MlmorpBeaconDescriptor::MlmorpBeaconDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::MlmorpBeacon)), "inet::FieldsChunk")
+RlmorpBeaconDescriptor::RlmorpBeaconDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::RlmorpBeacon)), "inet::FieldsChunk")
 {
     propertyNames = nullptr;
 }
 
-MlmorpBeaconDescriptor::~MlmorpBeaconDescriptor()
+RlmorpBeaconDescriptor::~RlmorpBeaconDescriptor()
 {
     delete[] propertyNames;
 }
 
-bool MlmorpBeaconDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool RlmorpBeaconDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<MlmorpBeacon *>(obj)!=nullptr;
+    return dynamic_cast<RlmorpBeacon *>(obj)!=nullptr;
 }
 
-const char **MlmorpBeaconDescriptor::getPropertyNames() const
+const char **RlmorpBeaconDescriptor::getPropertyNames() const
 {
     if (!propertyNames) {
         static const char *names[] = {  nullptr };
@@ -401,19 +401,19 @@ const char **MlmorpBeaconDescriptor::getPropertyNames() const
     return propertyNames;
 }
 
-const char *MlmorpBeaconDescriptor::getProperty(const char *propertyName) const
+const char *RlmorpBeaconDescriptor::getProperty(const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     return base ? base->getProperty(propertyName) : nullptr;
 }
 
-int MlmorpBeaconDescriptor::getFieldCount() const
+int RlmorpBeaconDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     return base ? 10+base->getFieldCount() : 10;
 }
 
-unsigned int MlmorpBeaconDescriptor::getFieldTypeFlags(int field) const
+unsigned int RlmorpBeaconDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -436,7 +436,7 @@ unsigned int MlmorpBeaconDescriptor::getFieldTypeFlags(int field) const
     return (field >= 0 && field < 10) ? fieldTypeFlags[field] : 0;
 }
 
-const char *MlmorpBeaconDescriptor::getFieldName(int field) const
+const char *RlmorpBeaconDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -459,7 +459,7 @@ const char *MlmorpBeaconDescriptor::getFieldName(int field) const
     return (field >= 0 && field < 10) ? fieldNames[field] : nullptr;
 }
 
-int MlmorpBeaconDescriptor::findField(const char *fieldName) const
+int RlmorpBeaconDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     int baseIndex = base ? base->getFieldCount() : 0;
@@ -476,7 +476,7 @@ int MlmorpBeaconDescriptor::findField(const char *fieldName) const
     return base ? base->findField(fieldName) : -1;
 }
 
-const char *MlmorpBeaconDescriptor::getFieldTypeString(int field) const
+const char *RlmorpBeaconDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -499,7 +499,7 @@ const char *MlmorpBeaconDescriptor::getFieldTypeString(int field) const
     return (field >= 0 && field < 10) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **MlmorpBeaconDescriptor::getFieldPropertyNames(int field) const
+const char **RlmorpBeaconDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -512,7 +512,7 @@ const char **MlmorpBeaconDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *MlmorpBeaconDescriptor::getFieldProperty(int field, const char *propertyName) const
+const char *RlmorpBeaconDescriptor::getFieldProperty(int field, const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -525,7 +525,7 @@ const char *MlmorpBeaconDescriptor::getFieldProperty(int field, const char *prop
     }
 }
 
-int MlmorpBeaconDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
+int RlmorpBeaconDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -533,13 +533,13 @@ int MlmorpBeaconDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field
             return base->getFieldArraySize(object, field);
         field -= base->getFieldCount();
     }
-    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
+    RlmorpBeacon *pp = omnetpp::fromAnyPtr<RlmorpBeacon>(object); (void)pp;
     switch (field) {
         default: return 0;
     }
 }
 
-void MlmorpBeaconDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
+void RlmorpBeaconDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -549,13 +549,13 @@ void MlmorpBeaconDescriptor::setFieldArraySize(omnetpp::any_ptr object, int fiel
         }
         field -= base->getFieldCount();
     }
-    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
+    RlmorpBeacon *pp = omnetpp::fromAnyPtr<RlmorpBeacon>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'MlmorpBeacon'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'RlmorpBeacon'", field);
     }
 }
 
-const char *MlmorpBeaconDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
+const char *RlmorpBeaconDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -563,13 +563,13 @@ const char *MlmorpBeaconDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr o
             return base->getFieldDynamicTypeString(object,field,i);
         field -= base->getFieldCount();
     }
-    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
+    RlmorpBeacon *pp = omnetpp::fromAnyPtr<RlmorpBeacon>(object); (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string MlmorpBeaconDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
+std::string RlmorpBeaconDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -577,7 +577,7 @@ std::string MlmorpBeaconDescriptor::getFieldValueAsString(omnetpp::any_ptr objec
             return base->getFieldValueAsString(object,field,i);
         field -= base->getFieldCount();
     }
-    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
+    RlmorpBeacon *pp = omnetpp::fromAnyPtr<RlmorpBeacon>(object); (void)pp;
     switch (field) {
         case FIELD_srcAddress: return pp->getSrcAddress().str();
         case FIELD_nextAddress: return pp->getNextAddress().str();
@@ -593,7 +593,7 @@ std::string MlmorpBeaconDescriptor::getFieldValueAsString(omnetpp::any_ptr objec
     }
 }
 
-void MlmorpBeaconDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
+void RlmorpBeaconDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -603,7 +603,7 @@ void MlmorpBeaconDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int 
         }
         field -= base->getFieldCount();
     }
-    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
+    RlmorpBeacon *pp = omnetpp::fromAnyPtr<RlmorpBeacon>(object); (void)pp;
     switch (field) {
         case FIELD_sequenceNumber: pp->setSequenceNumber(string2ulong(value)); break;
         case FIELD_cost: pp->setCost(string2double(value)); break;
@@ -612,11 +612,11 @@ void MlmorpBeaconDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int 
         case FIELD_dataRate: pp->setDataRate(string2double(value)); break;
         case FIELD_signalPower: pp->setSignalPower(string2double(value)); break;
         case FIELD_buffPktNo: pp->setBuffPktNo(string2double(value)); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'MlmorpBeacon'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'RlmorpBeacon'", field);
     }
 }
 
-omnetpp::cValue MlmorpBeaconDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
+omnetpp::cValue RlmorpBeaconDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -624,7 +624,7 @@ omnetpp::cValue MlmorpBeaconDescriptor::getFieldValue(omnetpp::any_ptr object, i
             return base->getFieldValue(object,field,i);
         field -= base->getFieldCount();
     }
-    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
+    RlmorpBeacon *pp = omnetpp::fromAnyPtr<RlmorpBeacon>(object); (void)pp;
     switch (field) {
         case FIELD_srcAddress: return omnetpp::toAnyPtr(&pp->getSrcAddress()); break;
         case FIELD_nextAddress: return omnetpp::toAnyPtr(&pp->getNextAddress()); break;
@@ -636,11 +636,11 @@ omnetpp::cValue MlmorpBeaconDescriptor::getFieldValue(omnetpp::any_ptr object, i
         case FIELD_dataRate: return pp->getDataRate();
         case FIELD_signalPower: return pp->getSignalPower();
         case FIELD_buffPktNo: return pp->getBuffPktNo();
-        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'MlmorpBeacon' as cValue -- field index out of range?", field);
+        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'RlmorpBeacon' as cValue -- field index out of range?", field);
     }
 }
 
-void MlmorpBeaconDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
+void RlmorpBeaconDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -650,7 +650,7 @@ void MlmorpBeaconDescriptor::setFieldValue(omnetpp::any_ptr object, int field, i
         }
         field -= base->getFieldCount();
     }
-    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
+    RlmorpBeacon *pp = omnetpp::fromAnyPtr<RlmorpBeacon>(object); (void)pp;
     switch (field) {
         case FIELD_sequenceNumber: pp->setSequenceNumber(omnetpp::checked_int_cast<unsigned int>(value.intValue())); break;
         case FIELD_cost: pp->setCost(static_cast<float>(value.doubleValue())); break;
@@ -659,11 +659,11 @@ void MlmorpBeaconDescriptor::setFieldValue(omnetpp::any_ptr object, int field, i
         case FIELD_dataRate: pp->setDataRate(value.doubleValue()); break;
         case FIELD_signalPower: pp->setSignalPower(value.doubleValue()); break;
         case FIELD_buffPktNo: pp->setBuffPktNo(value.doubleValue()); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'MlmorpBeacon'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'RlmorpBeacon'", field);
     }
 }
 
-const char *MlmorpBeaconDescriptor::getFieldStructName(int field) const
+const char *RlmorpBeaconDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -677,7 +677,7 @@ const char *MlmorpBeaconDescriptor::getFieldStructName(int field) const
     };
 }
 
-omnetpp::any_ptr MlmorpBeaconDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
+omnetpp::any_ptr RlmorpBeaconDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -685,7 +685,7 @@ omnetpp::any_ptr MlmorpBeaconDescriptor::getFieldStructValuePointer(omnetpp::any
             return base->getFieldStructValuePointer(object, field, i);
         field -= base->getFieldCount();
     }
-    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
+    RlmorpBeacon *pp = omnetpp::fromAnyPtr<RlmorpBeacon>(object); (void)pp;
     switch (field) {
         case FIELD_srcAddress: return omnetpp::toAnyPtr(&pp->getSrcAddress()); break;
         case FIELD_nextAddress: return omnetpp::toAnyPtr(&pp->getNextAddress()); break;
@@ -694,7 +694,7 @@ omnetpp::any_ptr MlmorpBeaconDescriptor::getFieldStructValuePointer(omnetpp::any
     }
 }
 
-void MlmorpBeaconDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
+void RlmorpBeaconDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -704,28 +704,28 @@ void MlmorpBeaconDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object,
         }
         field -= base->getFieldCount();
     }
-    MlmorpBeacon *pp = omnetpp::fromAnyPtr<MlmorpBeacon>(object); (void)pp;
+    RlmorpBeacon *pp = omnetpp::fromAnyPtr<RlmorpBeacon>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'MlmorpBeacon'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'RlmorpBeacon'", field);
     }
 }
 
-Register_Class(MlmorpAck)
+Register_Class(RlmorpAck)
 
-MlmorpAck::MlmorpAck() : ::inet::FieldsChunk()
+RlmorpAck::RlmorpAck() : ::inet::FieldsChunk()
 {
 }
 
-MlmorpAck::MlmorpAck(const MlmorpAck& other) : ::inet::FieldsChunk(other)
+RlmorpAck::RlmorpAck(const RlmorpAck& other) : ::inet::FieldsChunk(other)
 {
     copy(other);
 }
 
-MlmorpAck::~MlmorpAck()
+RlmorpAck::~RlmorpAck()
 {
 }
 
-MlmorpAck& MlmorpAck::operator=(const MlmorpAck& other)
+RlmorpAck& RlmorpAck::operator=(const RlmorpAck& other)
 {
     if (this == &other) return *this;
     ::inet::FieldsChunk::operator=(other);
@@ -733,7 +733,7 @@ MlmorpAck& MlmorpAck::operator=(const MlmorpAck& other)
     return *this;
 }
 
-void MlmorpAck::copy(const MlmorpAck& other)
+void RlmorpAck::copy(const RlmorpAck& other)
 {
     this->treeId = other.treeId;
     this->originalSource = other.originalSource;
@@ -741,7 +741,7 @@ void MlmorpAck::copy(const MlmorpAck& other)
     this->deliveryTime = other.deliveryTime;
 }
 
-void MlmorpAck::parsimPack(omnetpp::cCommBuffer *b) const
+void RlmorpAck::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::inet::FieldsChunk::parsimPack(b);
     doParsimPacking(b,this->treeId);
@@ -750,7 +750,7 @@ void MlmorpAck::parsimPack(omnetpp::cCommBuffer *b) const
     doParsimPacking(b,this->deliveryTime);
 }
 
-void MlmorpAck::parsimUnpack(omnetpp::cCommBuffer *b)
+void RlmorpAck::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::inet::FieldsChunk::parsimUnpack(b);
     doParsimUnpacking(b,this->treeId);
@@ -759,51 +759,51 @@ void MlmorpAck::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimUnpacking(b,this->deliveryTime);
 }
 
-int MlmorpAck::getTreeId() const
+int RlmorpAck::getTreeId() const
 {
     return this->treeId;
 }
 
-void MlmorpAck::setTreeId(int treeId)
+void RlmorpAck::setTreeId(int treeId)
 {
     handleChange();
     this->treeId = treeId;
 }
 
-const Ipv4Address& MlmorpAck::getOriginalSource() const
+const Ipv4Address& RlmorpAck::getOriginalSource() const
 {
     return this->originalSource;
 }
 
-void MlmorpAck::setOriginalSource(const Ipv4Address& originalSource)
+void RlmorpAck::setOriginalSource(const Ipv4Address& originalSource)
 {
     handleChange();
     this->originalSource = originalSource;
 }
 
-const Ipv4Address& MlmorpAck::getOriginalDestination() const
+const Ipv4Address& RlmorpAck::getOriginalDestination() const
 {
     return this->originalDestination;
 }
 
-void MlmorpAck::setOriginalDestination(const Ipv4Address& originalDestination)
+void RlmorpAck::setOriginalDestination(const Ipv4Address& originalDestination)
 {
     handleChange();
     this->originalDestination = originalDestination;
 }
 
-::omnetpp::simtime_t MlmorpAck::getDeliveryTime() const
+::omnetpp::simtime_t RlmorpAck::getDeliveryTime() const
 {
     return this->deliveryTime;
 }
 
-void MlmorpAck::setDeliveryTime(::omnetpp::simtime_t deliveryTime)
+void RlmorpAck::setDeliveryTime(::omnetpp::simtime_t deliveryTime)
 {
     handleChange();
     this->deliveryTime = deliveryTime;
 }
 
-class MlmorpAckDescriptor : public omnetpp::cClassDescriptor
+class RlmorpAckDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertyNames;
@@ -814,8 +814,8 @@ class MlmorpAckDescriptor : public omnetpp::cClassDescriptor
         FIELD_deliveryTime,
     };
   public:
-    MlmorpAckDescriptor();
-    virtual ~MlmorpAckDescriptor();
+    RlmorpAckDescriptor();
+    virtual ~RlmorpAckDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -841,24 +841,24 @@ class MlmorpAckDescriptor : public omnetpp::cClassDescriptor
     virtual void setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const override;
 };
 
-Register_ClassDescriptor(MlmorpAckDescriptor)
+Register_ClassDescriptor(RlmorpAckDescriptor)
 
-MlmorpAckDescriptor::MlmorpAckDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::MlmorpAck)), "inet::FieldsChunk")
+RlmorpAckDescriptor::RlmorpAckDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::RlmorpAck)), "inet::FieldsChunk")
 {
     propertyNames = nullptr;
 }
 
-MlmorpAckDescriptor::~MlmorpAckDescriptor()
+RlmorpAckDescriptor::~RlmorpAckDescriptor()
 {
     delete[] propertyNames;
 }
 
-bool MlmorpAckDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool RlmorpAckDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<MlmorpAck *>(obj)!=nullptr;
+    return dynamic_cast<RlmorpAck *>(obj)!=nullptr;
 }
 
-const char **MlmorpAckDescriptor::getPropertyNames() const
+const char **RlmorpAckDescriptor::getPropertyNames() const
 {
     if (!propertyNames) {
         static const char *names[] = {  nullptr };
@@ -869,19 +869,19 @@ const char **MlmorpAckDescriptor::getPropertyNames() const
     return propertyNames;
 }
 
-const char *MlmorpAckDescriptor::getProperty(const char *propertyName) const
+const char *RlmorpAckDescriptor::getProperty(const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     return base ? base->getProperty(propertyName) : nullptr;
 }
 
-int MlmorpAckDescriptor::getFieldCount() const
+int RlmorpAckDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     return base ? 4+base->getFieldCount() : 4;
 }
 
-unsigned int MlmorpAckDescriptor::getFieldTypeFlags(int field) const
+unsigned int RlmorpAckDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -898,7 +898,7 @@ unsigned int MlmorpAckDescriptor::getFieldTypeFlags(int field) const
     return (field >= 0 && field < 4) ? fieldTypeFlags[field] : 0;
 }
 
-const char *MlmorpAckDescriptor::getFieldName(int field) const
+const char *RlmorpAckDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -915,7 +915,7 @@ const char *MlmorpAckDescriptor::getFieldName(int field) const
     return (field >= 0 && field < 4) ? fieldNames[field] : nullptr;
 }
 
-int MlmorpAckDescriptor::findField(const char *fieldName) const
+int RlmorpAckDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     int baseIndex = base ? base->getFieldCount() : 0;
@@ -926,7 +926,7 @@ int MlmorpAckDescriptor::findField(const char *fieldName) const
     return base ? base->findField(fieldName) : -1;
 }
 
-const char *MlmorpAckDescriptor::getFieldTypeString(int field) const
+const char *RlmorpAckDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -943,7 +943,7 @@ const char *MlmorpAckDescriptor::getFieldTypeString(int field) const
     return (field >= 0 && field < 4) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **MlmorpAckDescriptor::getFieldPropertyNames(int field) const
+const char **RlmorpAckDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -956,7 +956,7 @@ const char **MlmorpAckDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *MlmorpAckDescriptor::getFieldProperty(int field, const char *propertyName) const
+const char *RlmorpAckDescriptor::getFieldProperty(int field, const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -969,7 +969,7 @@ const char *MlmorpAckDescriptor::getFieldProperty(int field, const char *propert
     }
 }
 
-int MlmorpAckDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
+int RlmorpAckDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -977,13 +977,13 @@ int MlmorpAckDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) c
             return base->getFieldArraySize(object, field);
         field -= base->getFieldCount();
     }
-    MlmorpAck *pp = omnetpp::fromAnyPtr<MlmorpAck>(object); (void)pp;
+    RlmorpAck *pp = omnetpp::fromAnyPtr<RlmorpAck>(object); (void)pp;
     switch (field) {
         default: return 0;
     }
 }
 
-void MlmorpAckDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
+void RlmorpAckDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -993,13 +993,13 @@ void MlmorpAckDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, 
         }
         field -= base->getFieldCount();
     }
-    MlmorpAck *pp = omnetpp::fromAnyPtr<MlmorpAck>(object); (void)pp;
+    RlmorpAck *pp = omnetpp::fromAnyPtr<RlmorpAck>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'MlmorpAck'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'RlmorpAck'", field);
     }
 }
 
-const char *MlmorpAckDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
+const char *RlmorpAckDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -1007,13 +1007,13 @@ const char *MlmorpAckDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr obje
             return base->getFieldDynamicTypeString(object,field,i);
         field -= base->getFieldCount();
     }
-    MlmorpAck *pp = omnetpp::fromAnyPtr<MlmorpAck>(object); (void)pp;
+    RlmorpAck *pp = omnetpp::fromAnyPtr<RlmorpAck>(object); (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string MlmorpAckDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
+std::string RlmorpAckDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -1021,7 +1021,7 @@ std::string MlmorpAckDescriptor::getFieldValueAsString(omnetpp::any_ptr object, 
             return base->getFieldValueAsString(object,field,i);
         field -= base->getFieldCount();
     }
-    MlmorpAck *pp = omnetpp::fromAnyPtr<MlmorpAck>(object); (void)pp;
+    RlmorpAck *pp = omnetpp::fromAnyPtr<RlmorpAck>(object); (void)pp;
     switch (field) {
         case FIELD_treeId: return long2string(pp->getTreeId());
         case FIELD_originalSource: return pp->getOriginalSource().str();
@@ -1031,7 +1031,7 @@ std::string MlmorpAckDescriptor::getFieldValueAsString(omnetpp::any_ptr object, 
     }
 }
 
-void MlmorpAckDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
+void RlmorpAckDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -1041,15 +1041,15 @@ void MlmorpAckDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int fie
         }
         field -= base->getFieldCount();
     }
-    MlmorpAck *pp = omnetpp::fromAnyPtr<MlmorpAck>(object); (void)pp;
+    RlmorpAck *pp = omnetpp::fromAnyPtr<RlmorpAck>(object); (void)pp;
     switch (field) {
         case FIELD_treeId: pp->setTreeId(string2long(value)); break;
         case FIELD_deliveryTime: pp->setDeliveryTime(string2simtime(value)); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'MlmorpAck'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'RlmorpAck'", field);
     }
 }
 
-omnetpp::cValue MlmorpAckDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
+omnetpp::cValue RlmorpAckDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -1057,17 +1057,17 @@ omnetpp::cValue MlmorpAckDescriptor::getFieldValue(omnetpp::any_ptr object, int 
             return base->getFieldValue(object,field,i);
         field -= base->getFieldCount();
     }
-    MlmorpAck *pp = omnetpp::fromAnyPtr<MlmorpAck>(object); (void)pp;
+    RlmorpAck *pp = omnetpp::fromAnyPtr<RlmorpAck>(object); (void)pp;
     switch (field) {
         case FIELD_treeId: return pp->getTreeId();
         case FIELD_originalSource: return omnetpp::toAnyPtr(&pp->getOriginalSource()); break;
         case FIELD_originalDestination: return omnetpp::toAnyPtr(&pp->getOriginalDestination()); break;
         case FIELD_deliveryTime: return pp->getDeliveryTime().dbl();
-        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'MlmorpAck' as cValue -- field index out of range?", field);
+        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'RlmorpAck' as cValue -- field index out of range?", field);
     }
 }
 
-void MlmorpAckDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
+void RlmorpAckDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -1077,15 +1077,15 @@ void MlmorpAckDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int 
         }
         field -= base->getFieldCount();
     }
-    MlmorpAck *pp = omnetpp::fromAnyPtr<MlmorpAck>(object); (void)pp;
+    RlmorpAck *pp = omnetpp::fromAnyPtr<RlmorpAck>(object); (void)pp;
     switch (field) {
         case FIELD_treeId: pp->setTreeId(omnetpp::checked_int_cast<int>(value.intValue())); break;
         case FIELD_deliveryTime: pp->setDeliveryTime(value.doubleValue()); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'MlmorpAck'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'RlmorpAck'", field);
     }
 }
 
-const char *MlmorpAckDescriptor::getFieldStructName(int field) const
+const char *RlmorpAckDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -1098,7 +1098,7 @@ const char *MlmorpAckDescriptor::getFieldStructName(int field) const
     };
 }
 
-omnetpp::any_ptr MlmorpAckDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
+omnetpp::any_ptr RlmorpAckDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -1106,7 +1106,7 @@ omnetpp::any_ptr MlmorpAckDescriptor::getFieldStructValuePointer(omnetpp::any_pt
             return base->getFieldStructValuePointer(object, field, i);
         field -= base->getFieldCount();
     }
-    MlmorpAck *pp = omnetpp::fromAnyPtr<MlmorpAck>(object); (void)pp;
+    RlmorpAck *pp = omnetpp::fromAnyPtr<RlmorpAck>(object); (void)pp;
     switch (field) {
         case FIELD_originalSource: return omnetpp::toAnyPtr(&pp->getOriginalSource()); break;
         case FIELD_originalDestination: return omnetpp::toAnyPtr(&pp->getOriginalDestination()); break;
@@ -1114,7 +1114,7 @@ omnetpp::any_ptr MlmorpAckDescriptor::getFieldStructValuePointer(omnetpp::any_pt
     }
 }
 
-void MlmorpAckDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
+void RlmorpAckDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -1124,9 +1124,9 @@ void MlmorpAckDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, in
         }
         field -= base->getFieldCount();
     }
-    MlmorpAck *pp = omnetpp::fromAnyPtr<MlmorpAck>(object); (void)pp;
+    RlmorpAck *pp = omnetpp::fromAnyPtr<RlmorpAck>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'MlmorpAck'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'RlmorpAck'", field);
     }
 }
 
