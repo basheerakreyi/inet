@@ -577,31 +577,32 @@ INetfilter::IHook::Result Mlmorp::datagramPreRoutingHook(Packet *datagram)
     }
     // ------ End of Data Collection ----- //
 
+    // Check if this is a MANET packet (ACKs are MANET too)
+    bool isManetPacket = (networkHeader->getProtocol() == &Protocol::manet);
+    if (!isManetPacket && datagram->findTag<PacketProtocolTag>() != nullptr) {
+        const Protocol *packetProtocol = datagram->getTag<PacketProtocolTag>()->getProtocol();
+        isManetPacket = (packetProtocol == &Protocol::manet);
+    }
+
+    if (isManetPacket) {
+        // Always route MANET control packets so ACKs can traverse non-RL nodes
+        const L3Address& destination = networkHeader->getDestinationAddress();
+        if (destination.isMulticast() || destination.isBroadcast() || rt->isLocalAddress(destination))
+            return ACCEPT;
+        else
+            return routeDatagram(datagram);
+    }
+
     bool useDNN = par("useDNNRouting").boolValue();
     if (useDNN || useOnlineRL) {
-        // Check if this is an ACK packet (MANET protocol)
-        bool isAckPacket = false;
-        if (datagram->findTag<PacketProtocolTag>() != nullptr) {
-            const Protocol *packetProtocol = datagram->getTag<PacketProtocolTag>()->getProtocol();
-            if (packetProtocol == &Protocol::manet) {
-                // Check if it's an ACK packet by trying to peek at the data
-                const Ptr<const Chunk> chunk = datagram->peekData();
-                auto ackData = dynamicPtrCast<const MlmorpAck>(chunk);
-                isAckPacket = (ackData != nullptr);
-            }
-        }
-        
-        // If ML-based routing or RL is enabled, use DNN/RL to select the next hop        
-        if ((networkHeader->getProtocol() == &Protocol::udp) || isAckPacket) {
-            // Apply to UDP packets or ACK packets
-            // Extract destination address from the network header
-            const L3Address& destination = networkHeader->getDestinationAddress();            
+        // If ML-based routing or RL is enabled, use DNN/RL to select the next hop
+        if (networkHeader->getProtocol() == &Protocol::udp) {
+            const L3Address& destination = networkHeader->getDestinationAddress();
             if (destination.isMulticast() || destination.isBroadcast() || rt->isLocalAddress(destination))
                 return ACCEPT;
             else
                 return routeDatagram(datagram);
         }
-
     } else {
         // If ML-based routing is not enabled, fall back to default behavior (could be legacy/routing table)
         return ACCEPT;
@@ -619,31 +620,32 @@ INetfilter::IHook::Result Mlmorp::datagramLocalOutHook(Packet *datagram)
     // Extract destination address from the network header
     const auto& networkHeader = getNetworkProtocolHeader(datagram);
 
+    // Check if this is a MANET packet (ACKs are MANET too)
+    bool isManetPacket = (networkHeader->getProtocol() == &Protocol::manet);
+    if (!isManetPacket && datagram->findTag<PacketProtocolTag>() != nullptr) {
+        const Protocol *packetProtocol = datagram->getTag<PacketProtocolTag>()->getProtocol();
+        isManetPacket = (packetProtocol == &Protocol::manet);
+    }
+
+    if (isManetPacket) {
+        // Always route MANET control packets so ACKs can traverse non-RL nodes
+        const L3Address& destination = networkHeader->getDestinationAddress();
+        if (destination.isMulticast() || destination.isBroadcast() || rt->isLocalAddress(destination))
+            return ACCEPT;
+        else
+            return routeDatagram(datagram);
+    }
+
     bool useDNN = par("useDNNRouting").boolValue();
     if (useDNN || useOnlineRL) {
-        // Check if this is an ACK packet (MANET protocol)
-        bool isAckPacket = false;
-        if (datagram->findTag<PacketProtocolTag>() != nullptr) {
-            const Protocol *packetProtocol = datagram->getTag<PacketProtocolTag>()->getProtocol();
-            if (packetProtocol == &Protocol::manet) {
-                // Check if it's an ACK packet by trying to peek at the data
-                const Ptr<const Chunk> chunk = datagram->peekData();
-                auto ackData = dynamicPtrCast<const MlmorpAck>(chunk);
-                isAckPacket = (ackData != nullptr);
-            }
-        }
-        
-        // If ML-based routing or RL is enabled, use DNN/RL to select the next hop        
-        if ((networkHeader->getProtocol() == &Protocol::udp) || isAckPacket) {
-            // Apply to UDP packets or ACK packets
-            // Extract destination address from the network header
-            const L3Address& destination = networkHeader->getDestinationAddress();            
+        // If ML-based routing or RL is enabled, use DNN/RL to select the next hop
+        if (networkHeader->getProtocol() == &Protocol::udp) {
+            const L3Address& destination = networkHeader->getDestinationAddress();
             if (destination.isMulticast() || destination.isBroadcast() || rt->isLocalAddress(destination))
                 return ACCEPT;
             else
                 return routeDatagram(datagram);
         }
-
     } else {
         // If ML-based routing is not enabled, fall back to default behavior (could be legacy/routing table)
         return ACCEPT;
