@@ -218,7 +218,18 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
             // Check if we're the original source
             Ipv4Address currentNode = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
             if (originalSource == currentNode) {
-                // We're the source - just log and drop
+                // We're the source - confirm delivery locally and drop ACK
+                if (useOnlineRL && packetTracker != nullptr) {
+                    double energyNow = energyStorage->getResidualEnergyCapacity().get();
+                    if (packetTracker->isTracking(treeId)) {
+                        packetTracker->confirmDelivery(treeId, ackData->getDeliveryTime(), energyNow);
+                        EV_INFO << "MLMORP: Confirmed delivery of packet " << treeId
+                                << " at source via ACK" << endl;
+                    } else {
+                        EV_DETAIL << "MLMORP: ACK reached source for packet " << treeId
+                                  << " but not tracking" << endl;
+                    }
+                }
                 EV_INFO << "MLMORP: ACK reached original source, dropping" << endl;
                 delete msg;
                 return;
@@ -502,8 +513,14 @@ void Mlmorp::purge()
 INetfilter::IHook::Result Mlmorp::routeDatagram(Packet *datagram)
 {
     const auto& networkHeader = getNetworkProtocolHeader(datagram);
-    const L3Address& source = networkHeader->getSourceAddress();
+    L3Address source = networkHeader->getSourceAddress();
     const L3Address& destination = networkHeader->getDestinationAddress();
+    if (source.isUnspecified()) {
+        // For locally generated packets, set a concrete source address for routing/ACKs.
+        Ipv4Address currentNode = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
+        source = L3Address(currentNode);
+        datagram->addTagIfAbsent<L3AddressReq>()->setSrcAddress(source);
+    }
     EV_INFO << "MLMORP: Finding next hop: source = " << source << ", destination = " << destination << endl;
     
     L3Address nextHop;
@@ -542,19 +559,16 @@ INetfilter::IHook::Result Mlmorp::datagramPreRoutingHook(Packet *datagram)
     // EV_INFO << (datagram->getTag<PacketProtocolTag>()->getProtocol() == &Protocol::ipv4) << endl;
 
     if ((networkHeader->getProtocol() == &Protocol::udp)) {
-        
-        // Check if this packet reached its destination (for RL feedback)
-        if (useOnlineRL && packetTracker != nullptr) {
-            if (rt->isLocalAddress(networkHeader->getDestinationAddress())) {
-                // Packet reached its destination - confirm delivery locally
+        if (rt->isLocalAddress(networkHeader->getDestinationAddress())) {
+            // Packet reached its destination - confirm delivery locally when tracking is enabled
+            if (useOnlineRL && packetTracker != nullptr) {
                 double energyNow = energyStorage->getResidualEnergyCapacity().get();
                 packetTracker->confirmDelivery(datagram->getTreeId(), simTime(), energyNow);
                 EV_INFO << "Packet " << datagram->getTreeId() << " delivered successfully" << endl;
-                
-                // Send acknowledgment back to source so intermediate nodes can confirm delivery
-                sendAcknowledgment(datagram->getTreeId(), networkHeader->getSourceAddress(), 
-                                 networkHeader->getDestinationAddress());
             }
+            // Always send ACK so upstream nodes can confirm delivery
+            sendAcknowledgment(datagram->getTreeId(), networkHeader->getSourceAddress(), 
+                             networkHeader->getDestinationAddress());
         }
           
         // Collect and write packet data to CSV
@@ -1079,10 +1093,6 @@ void Mlmorp::handleRLUpdate()
  */
 void Mlmorp::sendAcknowledgment(int treeId, const L3Address& originalSource, const L3Address& originalDestination)
 {
-    if (!useOnlineRL || packetTracker == nullptr) {
-        return;  // ACK only needed for online RL
-    }
-    
     // Create ACK packet
     auto ackData = makeShared<MlmorpAck>();
     ackData->setTreeId(treeId);
