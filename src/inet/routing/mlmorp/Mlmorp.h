@@ -71,6 +71,8 @@ private:
     double alpha;
     double beta;
     double gamma;
+    double delta;
+    double maxQueuePkts;
     MlmorpNeighborTable neighborTable;
 
     // Packet delay tracking

@@ -3,6 +3,7 @@
 #include "inet/routing/mlmorp/Mlmorp.h"
 
 #include <limits>
+#include <algorithm>
 
 #include "inet/common/IProtocolRegistrationListener.h"
 #include "inet/common/ModuleAccess.h"
@@ -55,6 +56,8 @@ void Mlmorp::initialize(int stage)
         alpha = par("alpha").doubleValue();
         beta = par("beta").doubleValue();
         gamma = par("gamma").doubleValue();
+        delta = par("delta").doubleValue();
+        maxQueuePkts = par("maxQueuePkts").doubleValue();
 
         // Initialize DNN Model
         int inputSize = par("dnnInputSize").intValue();
@@ -307,6 +310,7 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
             double hopCost;
             double energyCost;
             double bandwidthCost;
+            double queueCost;
 
             src = recBeacon->getSrcAddress();
             next = recBeacon->getNextAddress();
@@ -357,7 +361,8 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
                     hopCost = recBeacon->getCost() + 1;
                     energyCost = recBeacon->getCost() + (1 - residualEnergy/energyStorage->getNominalEnergyCapacity().get());
                     bandwidthCost = recBeacon->getCost() + 56000000/dataRate;
-                    cost = alpha*hopCost + beta*energyCost + gamma*bandwidthCost;
+                    queueCost = recBeacon->getCost() + std::min(getCurrentBufferPacketNum()/maxQueuePkts, 1.0);
+                    cost = alpha*hopCost + beta*energyCost + gamma*bandwidthCost + delta*queueCost;
                     EV_INFO << "Traditional Cost calculation: " << cost << endl;
                 }
                 

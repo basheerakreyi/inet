@@ -21,6 +21,8 @@ simple Mlmorp like IManetRouting
         double alpha = default(1);                            // Weight for hop
         double beta = default(0);                             // Weight for energy
         double gamma = default(0);                            // Weight for bandwidth
+        double delta = default(0);        			          // Weight for queue (buffPktNo)
+        double maxQueuePkts = default(50);                    // Max queue packets used to normalize buffPktNo
         
         // DNN Model Parameters
         bool useDNNRouting = default(false);                  // Enable DNN-based routing
