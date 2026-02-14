@@ -62,7 +62,7 @@ namespace inet {
  *     double dataRate;               // The data rate of the node
  * 
  *     double signalPower;            // Signal power in dBm
- *     double buffPktNo;                   // Signal-to-Noise-plus-Interference Ratio in dB
+ *     double buffPktNo;              // packet buffer or packet queue of the node
  * }
  * </pre>
  */
