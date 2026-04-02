@@ -22,7 +22,12 @@ simple Mlmorp like IManetRouting
         double beta = default(0);                             // Weight for energy
         double gamma = default(0);                            // Weight for bandwidth
         double delta = default(0);        			          // Weight for queue (buffPktNo)
+        double epsilon = default(0);                          // Weight for node degree (traditional cost)
+        double zeta = default(0);                             // Weight for received signal power (traditional cost)
         double maxQueuePkts = default(50);                    // Max queue packets used to normalize buffPktNo
+        double maxNodeDegree = default(50);                   // Max expected neighbors; used to normalize node degree
+        double signalMinDbm = default(-110);                  // Worst expected received power (dBm) for signal cost normalization
+        double signalMaxDbm = default(-30);                   // Best expected received power (dBm) for signal cost normalization
         
         // DNN Model Parameters
         bool useDNNRouting = default(false);                  // Enable DNN-based routing

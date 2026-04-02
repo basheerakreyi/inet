@@ -72,7 +72,12 @@ private:
     double beta;
     double gamma;
     double delta;
+    double epsilon;
+    double zeta;
     double maxQueuePkts;
+    double maxNodeDegree;
+    double signalMinDbm;
+    double signalMaxDbm;
     MlmorpNeighborTable neighborTable;
 
     // Packet delay tracking

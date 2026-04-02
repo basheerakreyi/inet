@@ -4,6 +4,7 @@
 
 #include <limits>
 #include <algorithm>
+#include <cmath>
 
 #include "inet/common/IProtocolRegistrationListener.h"
 #include "inet/common/ModuleAccess.h"
@@ -57,7 +58,12 @@ void Mlmorp::initialize(int stage)
         beta = par("beta").doubleValue();
         gamma = par("gamma").doubleValue();
         delta = par("delta").doubleValue();
+        epsilon = par("epsilon").doubleValue();
+        zeta = par("zeta").doubleValue();
         maxQueuePkts = par("maxQueuePkts").doubleValue();
+        maxNodeDegree = par("maxNodeDegree").doubleValue();
+        signalMinDbm = par("signalMinDbm").doubleValue();
+        signalMaxDbm = par("signalMaxDbm").doubleValue();
 
         // Initialize DNN Model
         int inputSize = par("dnnInputSize").intValue();
@@ -311,6 +317,8 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
             double energyCost;
             double bandwidthCost;
             double queueCost;
+            double degreeCost;
+            double signalCost;
 
             src = recBeacon->getSrcAddress();
             next = recBeacon->getNextAddress();
@@ -362,8 +370,27 @@ void Mlmorp::handleMessageWhenUp(cMessage *msg)
                     energyCost = recBeacon->getCost() + (1 - residualEnergy/energyStorage->getNominalEnergyCapacity().get());
                     bandwidthCost = recBeacon->getCost() + 56000000/dataRate;
                     queueCost = recBeacon->getCost() + std::min(getCurrentBufferPacketNum()/maxQueuePkts, 1.0);
-                    cost = alpha*hopCost + beta*energyCost + gamma*bandwidthCost + delta*queueCost;
-                    EV_INFO << "Traditional Cost calculation: " << cost << endl;
+
+                    double degreeIncremental = std::min(static_cast<double>(std::max(0, nodeDegree)) / std::max(maxNodeDegree, 1.0), 1.0);
+                    degreeCost = recBeacon->getCost() + degreeIncremental;
+
+                    double signalIncremental = 1.0;
+                    if (signalPower > 0 && !std::isnan(signalPower)) {
+                        // SignalPowerInd uses Watts; map to dBm and normalize so weaker signal increases cost
+                        double pMw = signalPower * 1000.0;
+                        double dBm = 10.0 * std::log10(std::max(pMw, 1e-20));
+                        double denom = signalMaxDbm - signalMinDbm;
+                        if (denom > 0) {
+                            double x = (signalMaxDbm - dBm) / denom;
+                            signalIncremental = std::min(1.0, std::max(0.0, x));
+                        }
+                    }
+                    signalCost = recBeacon->getCost() + signalIncremental;
+
+                    cost = alpha*hopCost + beta*energyCost + gamma*bandwidthCost + delta*queueCost
+                            + epsilon*degreeCost + zeta*signalCost;
+                    EV_INFO << "Traditional Cost calculation: " << cost << " (degreeIncr=" << degreeIncremental
+                            << " signalIncr=" << signalIncremental << ")" << endl;
                 }
                 
                 Ipv4Address source = interface80211ptr->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
