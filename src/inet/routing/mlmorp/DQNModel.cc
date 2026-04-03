@@ -269,6 +269,7 @@ double DQNModel::trainStep()
     // Prepare training data
     std::vector<std::vector<double>> neighborFeatures;
     std::vector<double> targets;
+    double totalSqError = 0.0;
     
     for (const auto& exp : batch) {
         neighborFeatures.push_back(exp.neighborFeatures);
@@ -285,6 +286,15 @@ double DQNModel::trainStep()
             target = exp.reward + gamma * maxNextQ;
         }
         targets.push_back(target);
+    }
+
+    // Compute TD loss before updating weights (based on current Q estimates).
+    // We return MSE over the sampled batch.
+    const int effectiveBatch = std::min<int>(batchSize, static_cast<int>(neighborFeatures.size()));
+    for (int i = 0; i < effectiveBatch; i++) {
+        double qValue = forward(neighborFeatures[i], false);
+        double err = targets[i] - qValue;
+        totalSqError += err * err;
     }
     
     // Perform backward pass and update weights
@@ -303,52 +313,94 @@ double DQNModel::trainStep()
     // Decay exploration rate
     decayEpsilon();
     
-    return 0.0;  // Could return actual loss if needed
+    return totalSqError / std::max(1, effectiveBatch);
 }
 
 void DQNModel::backward(const std::vector<std::vector<double>>& neighborFeatures,
                        const std::vector<double>& targets)
 {
-    // Simplified gradient descent update
-    // In practice, this would implement full backpropagation
-    // For now, we'll do a simplified update focusing on the output layer
+    // Backprop through the full 5 -> hidden1 -> hidden2 -> 1 network.
+    // We use a simplified squared-error TD loss:
+    //   L = 0.5 * (target - q)^2
+    // which yields gradients proportional to (target - q).
     
     for (int b = 0; b < batchSize && b < neighborFeatures.size(); b++) {
-        // Forward pass to get current Q-value
-        double qValue = forward(neighborFeatures[b], false);
-        
-        // Calculate error
-        double error = targets[b] - qValue;
-        
-        // Update output layer weights (simplified)
-        // Get hidden2 activations
+        // Recompute activations for this sample (we don't store activations).
+        // layer1: hidden1 = relu(sum1)
+        // layer2: hidden2 = relu(sum2)
+        // output:  q = biasOut + sum_j wOut[j] * hidden2[j]  (linear)
+
         std::vector<double> normalizedState = normalizeState(neighborFeatures[b]);
-        
-        // First hidden layer
+
+        std::vector<double> sum1(hiddenSize1);
         std::vector<double> hidden1(hiddenSize1);
         for (int i = 0; i < hiddenSize1; i++) {
-            double sum = mainBias1[i];
+            double acc = mainBias1[i];
             for (int j = 0; j < stateSize; j++) {
-                sum += mainWeights1[i][j] * normalizedState[j];
+                acc += mainWeights1[i][j] * normalizedState[j];
             }
-            hidden1[i] = relu(sum);
+            sum1[i] = acc;
+            hidden1[i] = relu(acc);
         }
-        
-        // Second hidden layer
+
+        std::vector<double> sum2(hiddenSize2);
         std::vector<double> hidden2(hiddenSize2);
         for (int i = 0; i < hiddenSize2; i++) {
-            double sum = mainBias2[i];
+            double acc = mainBias2[i];
             for (int j = 0; j < hiddenSize1; j++) {
-                sum += mainWeights2[i][j] * hidden1[j];
+                acc += mainWeights2[i][j] * hidden1[j];
             }
-            hidden2[i] = relu(sum);
+            sum2[i] = acc;
+            hidden2[i] = relu(acc);
         }
-        
-        // Update output weights (single output)
+
+        // Current prediction q(x) with the main network (before updates).
+        double qValue = mainBiasOut;
         for (int j = 0; j < hiddenSize2; j++) {
-            mainWeightsOut[j] += learningRate * error * hidden2[j];
+            qValue += mainWeightsOut[j] * hidden2[j];
         }
-        mainBiasOut += learningRate * error;
+
+        // TD/supervised target error term used by the original simplified update.
+        double delta_out = targets[b] - qValue;  // proportional to dL/dq with 0.5 scaling
+
+        // Backprop through output -> hidden2 -> hidden1.
+        // delta2[i] is dL/d(sum2[i])
+        std::vector<double> delta2(hiddenSize2, 0.0);
+        for (int i = 0; i < hiddenSize2; i++) {
+            delta2[i] = delta_out * mainWeightsOut[i] * reluDerivative(sum2[i]);
+        }
+
+        // delta1[j] is dL/d(sum1[j])
+        std::vector<double> delta1(hiddenSize1, 0.0);
+        for (int j = 0; j < hiddenSize1; j++) {
+            double acc = 0.0;
+            for (int i = 0; i < hiddenSize2; i++) {
+                acc += delta2[i] * mainWeights2[i][j];
+            }
+            delta1[j] = acc * reluDerivative(sum1[j]);
+        }
+
+        // Update output layer (linear)
+        for (int j = 0; j < hiddenSize2; j++) {
+            mainWeightsOut[j] += learningRate * delta_out * hidden2[j];
+        }
+        mainBiasOut += learningRate * delta_out;
+
+        // Update hidden2 layer (w2: hidden1 -> hidden2)
+        for (int i = 0; i < hiddenSize2; i++) {
+            for (int j = 0; j < hiddenSize1; j++) {
+                mainWeights2[i][j] += learningRate * delta2[i] * hidden1[j];
+            }
+            mainBias2[i] += learningRate * delta2[i];
+        }
+
+        // Update hidden1 layer (w1: input -> hidden1)
+        for (int i = 0; i < hiddenSize1; i++) {
+            for (int j = 0; j < stateSize; j++) {
+                mainWeights1[i][j] += learningRate * delta1[i] * normalizedState[j];
+            }
+            mainBias1[i] += learningRate * delta1[i];
+        }
     }
 }
 
